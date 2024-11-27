@@ -27,7 +27,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.maple.service=maple"
       - "traefik.http.routers.maple.entryPoints=websecure"
-      - "traefik.http.routers.maple.rule=Host(`api.maple.entropi.kr`)"
+      - "traefik.http.routers.maple.rule=Host(`api-market.entropi.kr`)"
       - "traefik.http.routers.maple.tls=true"
       - "traefik.http.routers.maple.tls.certResolver=letsencrypt"
       - "traefik.http.services.maple.loadbalancer.passhostheader=true"
