@@ -108,6 +108,7 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (inter
 		return nil, err
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Surge-Service-Key", api.Config.Surge.ServiceKey)
 
 	result, err := api.SurgeHTTP.Do(req)
