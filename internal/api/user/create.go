@@ -113,6 +113,7 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (inter
 
 	result, err := api.SurgeHTTP.Do(req)
 	if err != nil {
+		fmt.Printf("[user/create#createSurgeUser] Error: %+v\n", result)
 		if result != nil {
 			return unmarshalledBody(result)
 		} else {
