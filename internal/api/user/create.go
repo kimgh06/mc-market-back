@@ -114,6 +114,12 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (inter
 	result, err := api.SurgeHTTP.Do(req)
 	if err != nil {
 		fmt.Printf("[user/create#createSurgeUser] Error: %+v\n", result)
+		fmt.Printf("[user/create#createSurgeUser] ------- DUMP START ------")
+		fmt.Printf("[user/create#createSurgeUser] bodyJson %+v", bodyJson)
+		fmt.Printf("[user/create#createSurgeUser] bodyBuffer %+v", bodyBuffer)
+		fmt.Printf("[user/create#createSurgeUser] req %+v", req)
+		fmt.Printf("[user/create#createSurgeUser] result %+v", result)
+		fmt.Printf("[user/create#createSurgeUser] -------  DUMP END  ------")
 		if result != nil {
 			return unmarshalledBody(result)
 		} else {
