@@ -1,0 +1,9 @@
+maple
+
+# Development PostgreSQL
+.postgres
+.env
+.env.docker
+
+# Editor
+.idea

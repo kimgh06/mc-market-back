@@ -1,0 +1,33 @@
+services:
+  maple-postgres:
+    image: postgres:15
+    container_name: maple-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: maple_development
+    ports:
+      - "5432"
+    volumes:
+      - maple-postgres-data:/var/lib/postgres
+    networks:
+      maple-network:
+  maple-core:
+    container_name: maple-core
+    build:
+      context: ./
+      dockerfile: development.Dockerfile
+    env_file:
+      - .env
+      - .env.docker
+    command:
+      - ./maple
+    networks:
+      maple-network:
+
+volumes:
+  maple-postgres-data:
+
+networks:
+  maple-network:
+    driver: bridge

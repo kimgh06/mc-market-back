@@ -1,0 +1,14 @@
+# Postgres Only Compose
+
+services:
+  maple-postgres-standalone:
+    image: postgres:15
+    container_name: maple-postgres-standalone
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: maple_development
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./.postgres:/var/lib/postgres

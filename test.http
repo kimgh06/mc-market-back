@@ -1,0 +1,10 @@
+### Create server
+POST http://api.dev.entropi.kr:6568/v1/servers
+Content-Type: application/json
+
+{
+  "": ""
+}
+
+###
+OPTIONS http://api.dev.entropi.kr:6568/v1/servers

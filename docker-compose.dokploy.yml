@@ -1,0 +1,41 @@
+services:
+  maple-postgres:
+    image: postgres:15
+    container_name: maple-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: maple
+    volumes:
+      - maple-postgres-data:/var/lib/postgres
+    networks:
+      dokploy-network:
+  maple-core:
+    container_name: maple-core
+    depends_on:
+      - maple-postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - ./maple
+    env_file:
+      - .env
+    networks:
+      dokploy-network:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.maple.service=maple"
+      - "traefik.http.routers.maple.entryPoints=websecure"
+      - "traefik.http.routers.maple.rule=Host(`api.maple.entropi.kr`)"
+      - "traefik.http.routers.maple.tls=true"
+      - "traefik.http.routers.maple.tls.certResolver=letsencrypt"
+      - "traefik.http.services.maple.loadbalancer.passhostheader=true"
+      - "traefik.http.services.maple.loadbalancer.server.port=3000"
+
+volumes:
+  maple-postgres-data:
+
+networks:
+  dokploy-network:
+    external: true
