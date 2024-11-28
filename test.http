@@ -8,3 +8,13 @@ Content-Type: application/json
 
 ###
 OPTIONS http://api.dev.entropi.kr:6568/v1/servers
+
+###
+POST https://surge-market.entropi.kr/v1/sign_up/credentials
+Surge-Service-Key: ulz7Bh8kfTBO4HyBLqkJAVNhO4CLalhy1JsBsd0kG3o=
+Content-Type: application/json
+
+{
+  "username": "qqqqq",
+  "password": "reactor!$?24"
+}
