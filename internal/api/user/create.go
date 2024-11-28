@@ -57,7 +57,7 @@ func createUser(ctx *gin.Context) {
 
 	createUserResponse, err := createSurgeUser(a, body.Username, body.Password)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.WithJSON(createUserResponse, err.Error()))
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
 
@@ -89,16 +89,16 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (*Surg
 		Username: username,
 		Password: password,
 	})
-	fmt.Printf("[user/create#createSurgeUser] Reached P1")
+	fmt.Printf("[user/create#createSurgeUser] Reached P1\n")
 
 	bodyBuffer := bytes.NewBuffer(bodyJson)
-	fmt.Printf("[user/create#createSurgeUser] Reached P2")
+	fmt.Printf("[user/create#createSurgeUser] Reached P2\n")
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/sign_up/credentials", api.Config.Surge.URL), bodyBuffer)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("[user/create#createSurgeUser] Reached P3")
+	fmt.Printf("[user/create#createSurgeUser] Reached P3\n")
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Surge-Service-Key", api.Config.Surge.ServiceKey)
