@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM golang:alpine
 
 WORKDIR /build
 
@@ -10,7 +10,7 @@ RUN go build -o maple .
 WORKDIR /dist
 RUN cp /build/maple .
 
-FROM alpine AS runtime
+WORKDIR /
 
-COPY --from=builder /dist/maple .
+COPY /dist/maple .
 COPY schema ./schema
