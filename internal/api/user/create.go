@@ -57,27 +57,16 @@ func createUser(ctx *gin.Context) {
 
 	createUserResponse, err := createSurgeUser(a, body.Username, body.Password)
 	if err != nil {
-		println(err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.WithJSON(createUserResponse, err.Error()))
 		return
 	}
 
-	marshalled, err := json.Marshal(createUserResponse)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.WithJSON(createUserResponse, err.Error()))
-		return
-	}
-	var unmarshalled SurgeUserResponse
-	err = json.Unmarshal(marshalled, &unmarshalled)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.WithJSON(createUserResponse, err.Error()))
-		return
-	}
+	fmt.Printf("createUserResponse: %+v\n", createUserResponse)
 
-	snowflakeId := snowflake.ParseID(unmarshalled.ID)
+	snowflakeId := snowflake.ParseID(createUserResponse.ID)
 
 	mapleUser, err := a.Queries.CreateUser(ctx, schema.CreateUserParams{
-		ID:        int64(unmarshalled.ID),
+		ID:        int64(createUserResponse.ID),
 		Nickname:  sql.NullString{String: body.Nickname, Valid: body.Nickname != ""},
 		CreatedAt: snowflakeId.GenerateTime(),
 	})
@@ -87,12 +76,12 @@ func createUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, CreateUserResponse{
-		SurgeResponse: unmarshalled,
+		SurgeResponse: createUserResponse,
 		User:          mapleUser,
 	})
 }
 
-func createSurgeUser(api *api.MapleAPI, username string, password string) (interface{}, error) {
+func createSurgeUser(api *api.MapleAPI, username string, password string) (*SurgeUserResponse, error) {
 	bodyJson, err := json.Marshal(struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -117,12 +106,12 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (inter
 	result, err := api.SurgeHTTP.Do(req)
 	if err != nil {
 		fmt.Printf("[user/create#createSurgeUser] Error: %+v\n", result)
-		fmt.Printf("[user/create#createSurgeUser] ------- DUMP START ------")
-		fmt.Printf("[user/create#createSurgeUser] bodyJson %+v", bodyJson)
-		fmt.Printf("[user/create#createSurgeUser] bodyBuffer %+v", bodyBuffer)
-		fmt.Printf("[user/create#createSurgeUser] req %+v", req)
-		fmt.Printf("[user/create#createSurgeUser] result %+v", result)
-		fmt.Printf("[user/create#createSurgeUser] -------  DUMP END  ------")
+		fmt.Printf("[user/create#createSurgeUser] ------- DUMP START ------\n")
+		fmt.Printf("[user/create#createSurgeUser] bodyJson %+v\n", bodyJson)
+		fmt.Printf("[user/create#createSurgeUser] bodyBuffer %+v\n", bodyBuffer)
+		fmt.Printf("[user/create#createSurgeUser] req %+v\n", req)
+		fmt.Printf("[user/create#createSurgeUser] result %+v\n", result)
+		fmt.Printf("[user/create#createSurgeUser] -------  DUMP END  ------\n")
 		if result != nil {
 			return unmarshalledBody(result)
 		} else {
@@ -134,18 +123,18 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (inter
 	return unmarshalledBody(result)
 }
 
-func unmarshalledBody(result *http.Response) (interface{}, error) {
+func unmarshalledBody(result *http.Response) (*SurgeUserResponse, error) {
 	body, err := io.ReadAll(result.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var bodyUnmarshalled interface{}
+	var bodyUnmarshalled SurgeUserResponse
 
 	err = json.Unmarshal(body, &bodyUnmarshalled)
 	if err != nil {
 		return nil, err
 	}
 
-	return bodyUnmarshalled, err
+	return &bodyUnmarshalled, err
 }
