@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/godruoyi/go-snowflake"
-	"io"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -118,23 +117,19 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (*Surg
 			return nil, err
 		}
 	}
-	fmt.Printf("[user/create#createSurgeUser] Reached P4")
+	fmt.Printf("[user/create#createSurgeUser] Reached P4\n")
 
 	return unmarshalledBody(result)
 }
 
 func unmarshalledBody(result *http.Response) (*SurgeUserResponse, error) {
-	body, err := io.ReadAll(result.Body)
-	if err != nil {
+	defer result.Body.Close()
+
+	unmarshalled := new(SurgeUserResponse)
+
+	if err := json.NewDecoder(result.Body).Decode(unmarshalled); err != nil {
 		return nil, err
 	}
 
-	var bodyUnmarshalled SurgeUserResponse
-
-	err = json.Unmarshal(body, &bodyUnmarshalled)
-	if err != nil {
-		return nil, err
-	}
-
-	return &bodyUnmarshalled, err
+	return unmarshalled, nil
 }
