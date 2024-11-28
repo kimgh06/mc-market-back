@@ -10,7 +10,5 @@ RUN go build -o maple .
 WORKDIR /dist
 RUN cp /build/maple .
 
-WORKDIR /
-
 COPY /dist/maple .
 COPY schema ./schema
