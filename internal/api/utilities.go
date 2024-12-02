@@ -39,6 +39,15 @@ func QueryIntDefault(ctx *gin.Context, key string, def int) int {
 	return value
 }
 
+func QueryStringDefault(ctx *gin.Context, key string, def string) string {
+	v, exists := ctx.GetQuery(key)
+	if !exists {
+		return def
+	}
+
+	return v
+}
+
 func QueryUUIDDefault(ctx *gin.Context, key string, def uuid.UUID) uuid.UUID {
 	parsed, err := uuid.Parse(ctx.Query(key))
 	if err != nil {

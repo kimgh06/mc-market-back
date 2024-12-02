@@ -1,6 +1,17 @@
 -- name: CreateProduct :one
-insert into products (id, creator, name, description, usage, category)
-values ($1, $2, $3, $4, $5, $6)
+insert into products (id, creator, name, description, usage, category, price)
+values ($1, $2, $3, $4, $5, $6, $7)
+returning *;
+
+-- name: UpdateProduct :one
+update products
+set creator     = coalesce(sqlc.narg('creator'), creator),
+    name        = coalesce(sqlc.narg('name'), name),
+    description = coalesce(sqlc.narg('description'), description),
+    usage       = coalesce(sqlc.narg('usage'), usage),
+    category    = coalesce(sqlc.narg('category'), category),
+    price       = coalesce(sqlc.narg('price'), price)
+where id = $1
 returning *;
 
 -- name: DeleteProduct :exec

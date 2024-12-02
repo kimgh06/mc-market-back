@@ -9,15 +9,28 @@ import (
 	"time"
 )
 
+type Download struct {
+	UserID    int64     `json:"user_id"`
+	ProductID int64     `json:"product_id"`
+	Time      time.Time `json:"time"`
+}
+
+type Like struct {
+	UserID    sql.NullInt64 `json:"user_id"`
+	ProductID sql.NullInt64 `json:"product_id"`
+}
+
 type Product struct {
-	ID          int64     `json:"id"`
-	Creator     int64     `json:"creator"`
-	Category    string    `json:"category"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Usage       string    `json:"usage"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID            int64         `json:"id"`
+	Creator       int64         `json:"creator"`
+	Category      string        `json:"category"`
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	Usage         string        `json:"usage"`
+	Price         int32         `json:"price"`
+	PriceDiscount sql.NullInt32 `json:"price_discount"`
+	CreatedAt     time.Time     `json:"created_at"`
+	UpdatedAt     time.Time     `json:"updated_at"`
 }
 
 type User struct {

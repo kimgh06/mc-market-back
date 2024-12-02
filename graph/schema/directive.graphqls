@@ -1,0 +1,1 @@
+directive @hasPermission(permission: Int!) on FIELD_DEFINITION

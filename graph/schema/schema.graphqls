@@ -1,0 +1,43 @@
+scalar Int64
+scalar Time
+
+type User {
+    id: Int64
+}
+
+type Product {
+    id: Int64!
+
+    creator: User!
+
+    category: String!
+
+    name: String!
+    description: String
+    usage: String
+
+    price: Int
+    priceDiscount: Int,
+
+    createdAt: Time
+    updatedAt: Time
+}
+
+type Query {
+    products(cursor: ID, limit: Int): [Product!]!
+}
+
+input ProductInput {
+    creator: Int64!,
+    name: String!,
+    description: String,
+    usage: String,
+    category: String!,
+    price: Int
+}
+
+type Mutation {
+    createProduct(input: ProductInput): Product! @hasPermission(permission: 4)
+    updateProduct(id: ID!, input: ProductInput): Product! @hasPermission(permission: 4)
+    deleteProduct(id: ID!): Boolean @hasPermission(permission: 4)
+}

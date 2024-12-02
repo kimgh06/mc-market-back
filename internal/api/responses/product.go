@@ -2,12 +2,13 @@ package responses
 
 import (
 	"maple/internal/schema"
+	"strconv"
 	"time"
 )
 
 type Product struct {
-	ID      uint64 `json:"id"`
-	Creator uint64 `json:"creator"`
+	ID      string `json:"id"`
+	Creator string `json:"creator"`
 
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -20,8 +21,8 @@ type Product struct {
 
 func ProductFromSchema(product *schema.Product) Product {
 	var response Product
-	response.ID = uint64(product.ID)
-	response.Creator = uint64(product.Creator)
+	response.ID = strconv.FormatUint(uint64(product.ID), 10)
+	response.Creator = strconv.FormatUint(uint64(product.Creator), 10)
 	response.Name = product.Name
 	response.Description = product.Description
 	response.Category = product.Category
@@ -38,9 +39,9 @@ type ProductWithShortUser struct {
 
 func ProductWithShortUserFromSchema(product *schema.ListProductsRow) ProductWithShortUser {
 	var response ProductWithShortUser
-	response.ID = uint64(product.Product.ID)
+	response.ID = strconv.FormatUint(uint64(product.Product.ID), 10)
 	response.Creator = ShortUser{
-		ID: uint64(product.User.ID),
+		ID: strconv.FormatUint(uint64(product.User.ID), 10),
 	}
 	if product.User.Nickname.Valid {
 		response.Creator.Nickname = &product.User.Nickname.String

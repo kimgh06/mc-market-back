@@ -1,6 +1,6 @@
 services:
   maple-postgres:
-    image: postgres:15
+    image: postgres:16
     container_name: maple-postgres
     environment:
       POSTGRES_USER: postgres

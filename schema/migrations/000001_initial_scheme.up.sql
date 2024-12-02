@@ -21,15 +21,21 @@ create table public.products
 
     name           text                     not null
         constraint title_check check ( char_length(name) <= 50 ),
-    description    text                     not null,
-    usage          text                     not null,
+    description    text                     null,
+    usage          text                     null,
 
     price          int                      not null,
     price_discount int                      null,
 
+    ts             tsvector generated always as ( setweight(to_tsvector('korean', name), 'A') ||
+                                                  setweight(to_tsvector('korean', coalesce(description, '')), 'B') ||
+                                                  to_tsvector('korean', coalesce(usage, '')) ) stored,
+
     created_at     timestamp with time zone not null default now(),
     updated_at     timestamp with time zone not null default now()
 );
+
+CREATE INDEX gin_index_ts ON products USING GIN (ts);
 
 create table public.likes
 (

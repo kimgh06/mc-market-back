@@ -10,6 +10,10 @@ type MapleDatabaseConfigurations struct {
 	Url string `required:"true"`
 }
 
+type MapleStorageConfigurations struct {
+	ImagesPath string `required:"true" split_words:"true"`
+}
+
 type MapleLoggingConfigurations struct {
 	Debug    bool
 	Requests bool
@@ -31,6 +35,7 @@ type MapleSurgeConfigurations struct {
 
 type MapleConfigurations struct {
 	Database MapleDatabaseConfigurations `required:"true"`
+	Storage  MapleStorageConfigurations  `required:"true"`
 	Logging  MapleLoggingConfigurations
 	API      MapleAPIConfigurations
 	Auth     MapleAuthConfigurations

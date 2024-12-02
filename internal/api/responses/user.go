@@ -2,11 +2,12 @@ package responses
 
 import (
 	"maple/internal/schema"
+	"strconv"
 	"time"
 )
 
 type FullUser struct {
-	ID          uint64    `json:"id"`
+	ID          string    `json:"id"`
 	Nickname    *string   `json:"nickname"`
 	Permissions int32     `json:"permissions"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -14,7 +15,7 @@ type FullUser struct {
 }
 
 type ShortUser struct {
-	ID          uint64  `json:"id"`
+	ID          string  `json:"id"`
 	Nickname    *string `json:"username"`
 	Permissions int32   `json:"permissions"`
 }
@@ -29,7 +30,7 @@ func (u *FullUser) ToShortUser() ShortUser {
 
 func FullUserFromSchema(user *schema.User) FullUser {
 	var converted FullUser
-	converted.ID = uint64(user.ID)
+	converted.ID = strconv.FormatUint(uint64(user.ID), 10)
 	converted.CreatedAt = user.CreatedAt
 	converted.UpdatedAt = user.UpdatedAt
 	converted.Permissions = user.Permissions

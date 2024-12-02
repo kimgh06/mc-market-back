@@ -2,7 +2,9 @@
 
 services:
   maple-postgres-standalone:
-    image: postgres:15
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
     container_name: maple-postgres-standalone
     environment:
       POSTGRES_USER: postgres

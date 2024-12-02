@@ -7,6 +7,8 @@ const (
 
 	InsufficientUserPermission Code = "insufficient_user_permission"
 
+	FailedFormFile Code = "failed_form_file"
+	FailedStorage  Code = "failed_storage"
 	FailedDatabase Code = "failed_database"
 	FailedAPI      Code = "failed_api"
 	FailedValidate Code = "failed_validate"
