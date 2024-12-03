@@ -16,7 +16,8 @@ type FullUser struct {
 
 type ShortUser struct {
 	ID          string  `json:"id"`
-	Nickname    *string `json:"username"`
+	Username    *string `json:"username"`
+	Nickname    *string `json:"nickname"`
 	Permissions int32   `json:"permissions"`
 }
 

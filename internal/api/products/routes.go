@@ -14,7 +14,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 			a.POST("/", createProduct)
 			a.POST("/:id/", updateProduct)
 			a.DELETE("/:id/", deleteProduct)
-			a.POST("/:id/image", uploadImage)
+			a.POST("/:id/image/", uploadImage)
 		})
 
 		a.Route("/", func(a *api.MapleAPI) {
@@ -22,7 +22,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 
 			a.GET("/:id/", getProduct)
 			a.GET("/", listProducts)
-			//a.GET("/:id/image/", getImage)
+			a.GET("/:id/image/", getImage)
 		})
 
 		a.Route("/images/", func(a *api.MapleAPI) {

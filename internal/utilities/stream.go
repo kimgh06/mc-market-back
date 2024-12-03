@@ -1,5 +1,17 @@
 package utilities
 
+func RemoveDuplicate[T comparable](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	var list []T
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
 func Map[T, U any](ts []T, f func(T) U) []U {
 	us := make([]U, len(ts))
 	for i := range ts {

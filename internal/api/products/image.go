@@ -78,4 +78,5 @@ func getImage(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", contentType)
 	ctx.Status(http.StatusOK)
+	_, _ = ctx.Writer.Write(bytes)
 }

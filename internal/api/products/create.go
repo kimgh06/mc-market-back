@@ -1,6 +1,7 @@
 package products
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/godruoyi/go-snowflake"
@@ -39,8 +40,8 @@ func createProduct(ctx *gin.Context) {
 		ID:          int64(snowflake.ID()),
 		Creator:     int64(body.Creator),
 		Name:        body.Name,
-		Description: body.Description,
-		Usage:       body.Usage,
+		Description: sql.NullString{String: body.Description, Valid: true},
+		Usage:       sql.NullString{String: body.Usage, Valid: true},
 		Category:    body.Category,
 		Price:       body.Price,
 	})

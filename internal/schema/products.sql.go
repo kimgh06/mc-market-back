@@ -13,17 +13,17 @@ import (
 const createProduct = `-- name: CreateProduct :one
 insert into products (id, creator, name, description, usage, category, price)
 values ($1, $2, $3, $4, $5, $6, $7)
-returning id, creator, category, name, description, usage, price, price_discount, created_at, updated_at
+returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at
 `
 
 type CreateProductParams struct {
-	ID          int64  `json:"id"`
-	Creator     int64  `json:"creator"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Usage       string `json:"usage"`
-	Category    string `json:"category"`
-	Price       int32  `json:"price"`
+	ID          int64          `json:"id"`
+	Creator     int64          `json:"creator"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	Usage       sql.NullString `json:"usage"`
+	Category    string         `json:"category"`
+	Price       int32          `json:"price"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (*Product, error) {
@@ -46,6 +46,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (*
 		&i.Usage,
 		&i.Price,
 		&i.PriceDiscount,
+		&i.Ts,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -64,33 +65,46 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 }
 
 const getProductById = `-- name: GetProductById :one
-select id, creator, category, name, description, usage, price, price_discount, created_at, updated_at
+select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at
 from products
-where id = $1
+         left join public.users u on u.id = products.creator
+where products.id = $1
 `
 
-func (q *Queries) GetProductById(ctx context.Context, id int64) (*Product, error) {
+type GetProductByIdRow struct {
+	Product Product `json:"product"`
+	User    User    `json:"user"`
+}
+
+func (q *Queries) GetProductById(ctx context.Context, id int64) (*GetProductByIdRow, error) {
 	row := q.db.QueryRowContext(ctx, getProductById, id)
-	var i Product
+	var i GetProductByIdRow
 	err := row.Scan(
-		&i.ID,
-		&i.Creator,
-		&i.Category,
-		&i.Name,
-		&i.Description,
-		&i.Usage,
-		&i.Price,
-		&i.PriceDiscount,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.Product.ID,
+		&i.Product.Creator,
+		&i.Product.Category,
+		&i.Product.Name,
+		&i.Product.Description,
+		&i.Product.Usage,
+		&i.Product.Price,
+		&i.Product.PriceDiscount,
+		&i.Product.Ts,
+		&i.Product.CreatedAt,
+		&i.Product.UpdatedAt,
+		&i.User.ID,
+		&i.User.Nickname,
+		&i.User.Permissions,
+		&i.User.CreatedAt,
+		&i.User.UpdatedAt,
 	)
 	return &i, err
 }
 
 const listProducts = `-- name: ListProducts :many
-select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at
+select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at
 from products
          left join public.users u on u.id = products.creator
+         left join public.downloads d on d.product_id = products.id
 where products.id > $1::int
 order by products.created_at desc
 limit $2
@@ -102,7 +116,7 @@ type ListProductsParams struct {
 }
 
 type ListProductsRow struct {
-	Product Product `json:"products"`
+	Product Product `json:"product"`
 	User    User    `json:"user"`
 }
 
@@ -124,6 +138,7 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]*
 			&i.Product.Usage,
 			&i.Product.Price,
 			&i.Product.PriceDiscount,
+			&i.Product.Ts,
 			&i.Product.CreatedAt,
 			&i.Product.UpdatedAt,
 			&i.User.ID,
@@ -147,14 +162,14 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]*
 
 const updateProduct = `-- name: UpdateProduct :one
 update products
-set creator = coalesce($2, creator),
-    name = coalesce($3, name),
+set creator     = coalesce($2, creator),
+    name        = coalesce($3, name),
     description = coalesce($4, description),
-    usage = coalesce($5, usage),
-    category = coalesce($6, category),
-    price = coalesce($7, price)
+    usage       = coalesce($5, usage),
+    category    = coalesce($6, category),
+    price       = coalesce($7, price)
 where id = $1
-returning id, creator, category, name, description, usage, price, price_discount, created_at, updated_at
+returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at
 `
 
 type UpdateProductParams struct {
@@ -187,6 +202,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (*
 		&i.Usage,
 		&i.Price,
 		&i.PriceDiscount,
+		&i.Ts,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

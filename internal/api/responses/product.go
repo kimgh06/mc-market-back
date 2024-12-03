@@ -1,6 +1,7 @@
 package responses
 
 import (
+	"maple/internal/nullable"
 	"maple/internal/schema"
 	"strconv"
 	"time"
@@ -15,6 +16,9 @@ type Product struct {
 
 	Category string `json:"category"`
 
+	Price         int    `json:"price"`
+	PriceDiscount *int32 `json:"price_discount"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -24,10 +28,14 @@ func ProductFromSchema(product *schema.Product) Product {
 	response.ID = strconv.FormatUint(uint64(product.ID), 10)
 	response.Creator = strconv.FormatUint(uint64(product.Creator), 10)
 	response.Name = product.Name
-	response.Description = product.Description
+	if product.Description.Valid {
+		response.Description = product.Description.String
+	}
 	response.Category = product.Category
 	response.CreatedAt = product.CreatedAt
 	response.UpdatedAt = product.UpdatedAt
+	response.Price = int(product.Price)
+	response.PriceDiscount = nullable.Int32ToPointer(product.PriceDiscount)
 
 	return response
 }
@@ -39,18 +47,13 @@ type ProductWithShortUser struct {
 
 func ProductWithShortUserFromSchema(product *schema.ListProductsRow) ProductWithShortUser {
 	var response ProductWithShortUser
-	response.ID = strconv.FormatUint(uint64(product.Product.ID), 10)
+	response.Product = ProductFromSchema(&product.Product)
 	response.Creator = ShortUser{
 		ID: strconv.FormatUint(uint64(product.User.ID), 10),
 	}
 	if product.User.Nickname.Valid {
 		response.Creator.Nickname = &product.User.Nickname.String
 	}
-	response.Name = product.Product.Name
-	response.Description = product.Product.Description
-	response.CreatedAt = product.Product.CreatedAt
-	response.UpdatedAt = product.Product.UpdatedAt
-	response.Category = product.Product.Category
 
 	return response
 }

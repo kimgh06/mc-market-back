@@ -20,14 +20,16 @@ from products
 where id = $1;
 
 -- name: GetProductById :one
-select *
+select sqlc.embed(products), sqlc.embed(u)
 from products
-where id = $1;
+         left join public.users u on u.id = products.creator
+where products.id = $1;
 
 -- name: ListProducts :many
 select sqlc.embed(products), sqlc.embed(u)
 from products
          left join public.users u on u.id = products.creator
+         left join public.downloads d on d.product_id = products.id
 where products.id > sqlc.arg('offset')::int
 order by products.created_at desc
 limit sqlc.arg('limit');

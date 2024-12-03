@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"maple/internal/api"
 	"maple/internal/api/responses"
 	"maple/internal/perrors"
@@ -67,6 +66,7 @@ func listProducts(ctx *gin.Context) {
 
 	offset := utilities.Clamp(api.QueryIntDefault(ctx, "offset", 0), 0, math.MaxInt)
 	limit := utilities.Clamp(api.QueryIntDefault(ctx, "limit", 20), 0, 20)
+	orderBy := strings.ToLower(api.QueryStringDefault(ctx, "order_by", "time"))
 	sort := strings.ToLower(api.QueryStringDefault(ctx, "sort", "desc"))
 	filters := listFilters{}
 
@@ -84,7 +84,8 @@ func listProducts(ctx *gin.Context) {
 		StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Select("products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.created_at, products.updated_at, u.id, u.nickname").
 		From("products").
-		LeftJoin(fmt.Sprintf("public.users u ON u.id = products.creator"))
+		LeftJoin(fmt.Sprintf("public.users u ON u.id = products.creator")).
+		LeftJoin(fmt.Sprintf("public.downloads d on d.product_id = products.id"))
 
 	whereClause := squirrel.And{squirrel.Gt{"products.id": offset}}
 
@@ -95,7 +96,7 @@ func listProducts(ctx *gin.Context) {
 		keywordSanitized := SpecialCharacterRegexp.ReplaceAllString(*filters.Keyword, "")
 		keywordSplit := strings.Split(keywordSanitized, " ")
 		searchQuery := strings.Join(keywordSplit, " & ")
-		whereClause = append(whereClause, squirrel.Expr(fmt.Sprintf("products.ts @@ to_tsquery('%s')", searchQuery)))
+		whereClause = append(whereClause, squirrel.Expr(fmt.Sprintf("products.ts @@ to_tsquery(?)"), searchQuery))
 	}
 	if filters.PriceRangeStart != nil {
 		whereClause = append(whereClause, squirrel.GtOrEq{"coalesce(products.price_discount, products.price)": *filters.PriceRangeStart})
@@ -104,15 +105,22 @@ func listProducts(ctx *gin.Context) {
 		whereClause = append(whereClause, squirrel.Lt{"coalesce(products.price_discount, products.price)": *filters.PriceRangeEnd})
 	}
 
-	query = query.Where(whereClause).
-		OrderBy(fmt.Sprintf("products.id %s", sort)).
-		Limit(uint64(limit))
+	query = query.Where(whereClause)
 
-	generated, args, _ := query.ToSql()
-	logrus.Debugf("Generated Query: %s", generated)
-	logrus.Debugf("Generated Args: %+v", args)
+	switch orderBy {
+	case "downloads":
+		query = query.OrderBy(fmt.Sprintf("count(d) %s", sort))
+	case "price":
+		query = query.OrderBy(fmt.Sprintf("coalesce(products.price_discount, products.price) %s", sort))
+	case "time":
+		fallthrough
+	default:
+		query = query.OrderBy(fmt.Sprintf("products.created_at %s", sort))
+	}
 
-	rows, err := a.Conn.Query(generated, args...)
+	query = query.Limit(uint64(limit))
+
+	rows, err := query.RunWith(a.Conn).Query()
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return
@@ -124,8 +132,24 @@ func listProducts(ctx *gin.Context) {
 		return
 	}
 
+	creatorIds := utilities.Map(products, func(row *schema.ListProductsRow) uint64 {
+		return uint64(row.User.ID)
+	})
+
+	creatorIdToUsernameMap, err := a.SurgeAPI.ResolveUsernamesAsMap(creatorIds)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+
 	fullProducts := utilities.Map(products, func(u *schema.ListProductsRow) responses.ProductWithShortUser {
-		return responses.ProductWithShortUserFromSchema(u)
+		converted := responses.ProductWithShortUserFromSchema(u)
+
+		if username, found := creatorIdToUsernameMap[uint64(u.User.ID)]; found {
+			converted.Creator.Username = &username
+		}
+
+		return converted
 	})
 
 	ctx.JSON(http.StatusOK, fullProducts)

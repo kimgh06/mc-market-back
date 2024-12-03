@@ -8,6 +8,7 @@ import (
 	"maple/internal/conf"
 	"maple/internal/schema"
 	"maple/internal/storage"
+	"maple/internal/surge"
 	"net/http"
 )
 
@@ -20,6 +21,7 @@ type MapleAPI struct {
 	Config  *conf.MapleConfigurations
 
 	SurgeHTTP *http.Client
+	SurgeAPI  *surge.API
 
 	JWKS *MapleJWKS
 }
@@ -60,6 +62,10 @@ func NewMapleAPI(config *conf.MapleConfigurations, options ...MapleAPIOptions) M
 		Config:  config,
 
 		SurgeHTTP: &http.Client{Transport: tr},
+		SurgeAPI: &surge.API{
+			Client:        &http.Client{Transport: tr},
+			Configuration: surge.NewAPIConfiguration(config.Surge.URL),
+		},
 
 		JWKS: jwks,
 	}

@@ -5,6 +5,7 @@ import (
 	"maple/internal/api"
 	"maple/internal/api/responses"
 	"maple/internal/perrors"
+	"maple/internal/schema"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,5 +27,14 @@ func getProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, responses.ProductFromSchema(product))
+	converted := responses.ProductWithShortUserFromSchema((*schema.ListProductsRow)(product))
+	usernames, err := a.SurgeAPI.ResolveUsernames([]uint64{uint64(product.User.ID)})
+	if err != nil || len(usernames) < 0 {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+
+	converted.Creator.Username = &usernames[0]
+
+	ctx.JSON(http.StatusOK, converted)
 }
