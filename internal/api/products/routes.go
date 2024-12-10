@@ -15,6 +15,11 @@ func InitializeRoutes(a *api.MapleAPI) {
 			a.POST("/:id/", updateProduct)
 			a.DELETE("/:id/", deleteProduct)
 			a.POST("/:id/image/", uploadImage)
+			a.POST("/:id/file/", uploadFile)
+			a.GET("/:id/file/", getFile)
+			a.POST("/:id/purchase/", purchaseProduct)
+			a.GET("/:id/purchased/", getPurchase)
+			a.GET("/:id/revenues/", getUnclaimedRevenues)
 		})
 
 		a.Route("/", func(a *api.MapleAPI) {

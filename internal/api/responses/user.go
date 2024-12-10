@@ -12,6 +12,7 @@ type FullUser struct {
 	Permissions int32     `json:"permissions"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	Cash        int       `json:"cash"`
 }
 
 type ShortUser struct {
@@ -19,6 +20,7 @@ type ShortUser struct {
 	Username    *string `json:"username"`
 	Nickname    *string `json:"nickname"`
 	Permissions int32   `json:"permissions"`
+	Cash        int     `json:"cash"`
 }
 
 func (u *FullUser) ToShortUser() ShortUser {
@@ -26,6 +28,7 @@ func (u *FullUser) ToShortUser() ShortUser {
 		ID:          u.ID,
 		Nickname:    u.Nickname,
 		Permissions: u.Permissions,
+		Cash:        u.Cash,
 	}
 }
 
@@ -35,6 +38,7 @@ func FullUserFromSchema(user *schema.User) FullUser {
 	converted.CreatedAt = user.CreatedAt
 	converted.UpdatedAt = user.UpdatedAt
 	converted.Permissions = user.Permissions
+	converted.Cash = int(user.Cash)
 	if user.Nickname.Valid {
 		converted.Nickname = &user.Nickname.String
 	}

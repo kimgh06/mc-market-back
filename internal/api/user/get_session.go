@@ -30,6 +30,7 @@ func getSessionUser(ctx *gin.Context) {
 		res.Nickname = &user.Nickname.String
 	}
 	res.Permissions = user.Permissions
+	res.Cash = uint(user.Cash)
 
 	ctx.JSON(http.StatusOK, res)
 }

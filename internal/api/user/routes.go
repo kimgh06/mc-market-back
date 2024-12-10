@@ -12,6 +12,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 
 			a.GET("/session/", getSessionUser)
 			a.GET("/", listUsers)
+			a.POST("/:id/", updateUser)
 		})
 
 		a.Route("/", func(a *api.MapleAPI) {

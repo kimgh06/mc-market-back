@@ -19,3 +19,12 @@ from users
 where users.id > sqlc.arg('offset')::int
 order by users.created_at desc
 limit sqlc.arg('limit');
+
+-- name: UpdateUser :one
+update users
+set nickname    = coalesce(sqlc.narg('nickname'), nickname),
+    permissions = coalesce(sqlc.narg('permissions'), permissions),
+    cash        = coalesce(sqlc.narg('cash'), cash),
+    updated_at  = now()
+where id = $1
+returning *;

@@ -22,4 +22,8 @@ const (
 	UserNotFound Code = "user_not_found"
 
 	ProductNotFound Code = "maple_not_found"
+
+	InsufficientFunds Code = "insufficient_funds"
+	DuplicatePurchase Code = "duplicate_purchase"
+	PurchaseNotFound
 )

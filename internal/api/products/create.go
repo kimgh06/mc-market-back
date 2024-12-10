@@ -18,16 +18,23 @@ func createProduct(ctx *gin.Context) {
 	a := api.Get(ctx)
 	user := middlewares.GetUser(ctx)
 
-	if !permissions.RequireUserPermission(ctx, user, permissions.ManageProducts) {
-		return
-	}
-
 	body := CreateProductBody{}
 	err := ctx.ShouldBind(&body)
 	if err != nil {
 		// failed to bind body, abort
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
 		return
+	}
+
+	if body.Creator == 0 {
+		body.Creator = uint64(user.ID)
+	}
+
+	// If creator is specified, and it is not request user, requester must have ManageProduct permission in order to create product
+	if body.Creator != uint64(user.ID) {
+		if !permissions.RequireUserPermission(ctx, user, permissions.ManageProducts) {
+			return
+		}
 	}
 
 	validate := validator.New()

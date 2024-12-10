@@ -65,15 +65,18 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 }
 
 const getProductById = `-- name: GetProductById :one
-select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at
+select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, count(pu)
 from products
          left join public.users u on u.id = products.creator
+         left join public.purchases pu on pu.product = products.id
 where products.id = $1
+group by products.id, u.id, pu.product
 `
 
 type GetProductByIdRow struct {
 	Product Product `json:"product"`
 	User    User    `json:"user"`
+	Count   int64   `json:"count"`
 }
 
 func (q *Queries) GetProductById(ctx context.Context, id int64) (*GetProductByIdRow, error) {
@@ -96,16 +99,19 @@ func (q *Queries) GetProductById(ctx context.Context, id int64) (*GetProductById
 		&i.User.Permissions,
 		&i.User.CreatedAt,
 		&i.User.UpdatedAt,
+		&i.User.Cash,
+		&i.Count,
 	)
 	return &i, err
 }
 
 const listProducts = `-- name: ListProducts :many
-select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at
+select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, count(pu)
 from products
          left join public.users u on u.id = products.creator
-         left join public.downloads d on d.product_id = products.id
+         left join public.purchases pu on pu.product = products.id
 where products.id > $1::int
+group by products.id, products.created_at, u.id, pu.product
 order by products.created_at desc
 limit $2
 `
@@ -118,6 +124,7 @@ type ListProductsParams struct {
 type ListProductsRow struct {
 	Product Product `json:"product"`
 	User    User    `json:"user"`
+	Count   int64   `json:"count"`
 }
 
 func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]*ListProductsRow, error) {
@@ -146,6 +153,8 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]*
 			&i.User.Permissions,
 			&i.User.CreatedAt,
 			&i.User.UpdatedAt,
+			&i.User.Cash,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

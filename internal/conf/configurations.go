@@ -11,7 +11,8 @@ type MapleDatabaseConfigurations struct {
 }
 
 type MapleStorageConfigurations struct {
-	ImagesPath string `required:"true" split_words:"true"`
+	ImagesPath   string `required:"true" split_words:"true"`
+	ContentsPath string `required:"true" split_words:"true"`
 }
 
 type MapleLoggingConfigurations struct {

@@ -6,4 +6,5 @@ const (
 	Administrator UserPermission = 1 << iota
 	ListUsers
 	ManageProducts
+	ManageUsers
 )

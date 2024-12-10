@@ -61,7 +61,6 @@ func getImage(ctx *gin.Context) {
 	}
 
 	path := filepath.Join(a.Config.Storage.ImagesPath, "products", strconv.FormatUint(id, 10))
-	println(path)
 
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		ctx.Status(http.StatusNoContent)

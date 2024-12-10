@@ -34,10 +34,20 @@ type Product struct {
 	UpdatedAt     time.Time      `json:"updated_at"`
 }
 
+type Purchase struct {
+	ID          int64     `json:"id"`
+	Purchaser   int64     `json:"purchaser"`
+	Product     int64     `json:"product"`
+	PurchasedAt time.Time `json:"purchased_at"`
+	Claimed     bool      `json:"claimed"`
+	Cost        int32     `json:"cost"`
+}
+
 type User struct {
 	ID          int64          `json:"id"`
 	Nickname    sql.NullString `json:"nickname"`
 	Permissions int32          `json:"permissions"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
+	Cash        int32          `json:"cash"`
 }

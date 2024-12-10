@@ -6,7 +6,7 @@ type CreateProductBody struct {
 	Usage       string `json:"usage" validate:"lte=300"`
 	Category    string `json:"category" validate:"required"`
 	Price       int32  `json:"price" validate:"gte=0"`
-	Creator     uint64 `json:"creator" validate:"required"`
+	Creator     uint64 `json:"creator"`
 }
 
 type UpdateProductBody struct {

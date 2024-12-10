@@ -19,6 +19,7 @@ import (
 var SpecialCharacterRegexp, _ = regexp.Compile("/[\\{\\}\\[\\]\\/?.,;:|\\)*~`!^\\-_+<>@\\#$%&\\\\\\=\\(\\'\\\"]/g")
 
 type listFilters struct {
+	Creator         *int    `form:"creator"`
 	Category        *string `form:"category"`
 	Keyword         *string `form:"keyword"`
 	PriceRangeStart *int    `form:"price_range_start"`
@@ -46,6 +47,7 @@ func scanProductRows(rows *sql.Rows) ([]*schema.ListProductsRow, error) {
 			&i.Product.UpdatedAt,
 			&i.User.ID,
 			&i.User.Nickname,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -82,13 +84,16 @@ func listProducts(ctx *gin.Context) {
 	// Build Query
 	query := squirrel.
 		StatementBuilder.PlaceholderFormat(squirrel.Dollar).
-		Select("products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.created_at, products.updated_at, u.id, u.nickname").
+		Select("products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.created_at, products.updated_at, u.id, u.nickname, count(pu)").
 		From("products").
 		LeftJoin(fmt.Sprintf("public.users u ON u.id = products.creator")).
-		LeftJoin(fmt.Sprintf("public.downloads d on d.product_id = products.id"))
+		LeftJoin(fmt.Sprintf("public.purchases pu on pu.product = products.id"))
 
 	whereClause := squirrel.And{squirrel.Gt{"products.id": offset}}
 
+	if filters.Creator != nil {
+		whereClause = append(whereClause, squirrel.Eq{"products.creator": filters.Creator})
+	}
 	if filters.Category != nil {
 		whereClause = append(whereClause, squirrel.Eq{"products.category": filters.Category})
 	}
@@ -105,11 +110,11 @@ func listProducts(ctx *gin.Context) {
 		whereClause = append(whereClause, squirrel.Lt{"coalesce(products.price_discount, products.price)": *filters.PriceRangeEnd})
 	}
 
-	query = query.Where(whereClause)
+	query = query.Where(whereClause).GroupBy("products.id, u.id")
 
 	switch orderBy {
-	case "downloads":
-		query = query.OrderBy(fmt.Sprintf("count(d) %s", sort))
+	case "purchases":
+		query = query.OrderBy(fmt.Sprintf("count(pu) %s", sort))
 	case "price":
 		query = query.OrderBy(fmt.Sprintf("coalesce(products.price_discount, products.price) %s", sort))
 	case "time":

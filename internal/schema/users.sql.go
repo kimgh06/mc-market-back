@@ -14,7 +14,7 @@ import (
 const createUser = `-- name: CreateUser :one
 insert into users (id, nickname, created_at, updated_at)
 values ($1, $2, $3, $3)
-returning id, nickname, permissions, created_at, updated_at
+returning id, nickname, permissions, created_at, updated_at, cash
 `
 
 type CreateUserParams struct {
@@ -32,12 +32,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, 
 		&i.Permissions,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Cash,
 	)
 	return &i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-select id, nickname, permissions, created_at, updated_at
+select id, nickname, permissions, created_at, updated_at, cash
 from users
 where id = $1
 `
@@ -51,12 +52,13 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (*User, error) {
 		&i.Permissions,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Cash,
 	)
 	return &i, err
 }
 
 const getUserByNickname = `-- name: GetUserByNickname :one
-select id, nickname, permissions, created_at, updated_at
+select id, nickname, permissions, created_at, updated_at, cash
 from users
 where nickname = $1
 `
@@ -70,12 +72,13 @@ func (q *Queries) GetUserByNickname(ctx context.Context, nickname sql.NullString
 		&i.Permissions,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Cash,
 	)
 	return &i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-select id, nickname, permissions, created_at, updated_at
+select id, nickname, permissions, created_at, updated_at, cash
 from users
 where users.id > $1::int
 order by users.created_at desc
@@ -102,6 +105,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, 
 			&i.Permissions,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Cash,
 		); err != nil {
 			return nil, err
 		}
@@ -114,4 +118,40 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :one
+update users
+set nickname    = coalesce($2, nickname),
+    permissions = coalesce($3, permissions),
+    cash        = coalesce($4, cash),
+    updated_at  = now()
+where id = $1
+returning id, nickname, permissions, created_at, updated_at, cash
+`
+
+type UpdateUserParams struct {
+	ID          int64          `json:"id"`
+	Nickname    sql.NullString `json:"nickname"`
+	Permissions sql.NullInt32  `json:"permissions"`
+	Cash        sql.NullInt32  `json:"cash"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser,
+		arg.ID,
+		arg.Nickname,
+		arg.Permissions,
+		arg.Cash,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Permissions,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Cash,
+	)
+	return &i, err
 }

@@ -1,0 +1,1 @@
+alter table users add column cash int not null default 0;
