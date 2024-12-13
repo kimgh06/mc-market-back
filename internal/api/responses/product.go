@@ -19,11 +19,15 @@ type Product struct {
 	Price         int    `json:"price"`
 	PriceDiscount *int32 `json:"price_discount"`
 
+	Purchases int `json:"purchases"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func ProductFromSchema(product *schema.Product) Product {
+func ProductFromSchema(row *schema.GetProductByIdRow) Product {
+	product := row.Product
+
 	var response Product
 	response.ID = strconv.FormatUint(uint64(product.ID), 10)
 	response.Creator = strconv.FormatUint(uint64(product.Creator), 10)
@@ -36,6 +40,7 @@ func ProductFromSchema(product *schema.Product) Product {
 	response.UpdatedAt = product.UpdatedAt
 	response.Price = int(product.Price)
 	response.PriceDiscount = nullable.Int32ToPointer(product.PriceDiscount)
+	response.Purchases = int(row.Count)
 
 	return response
 }
@@ -45,9 +50,9 @@ type ProductWithShortUser struct {
 	Creator ShortUser `json:"creator"`
 }
 
-func ProductWithShortUserFromSchema(product *schema.ListProductsRow) ProductWithShortUser {
+func ProductWithShortUserFromSchema(product *schema.GetProductByIdRow) ProductWithShortUser {
 	var response ProductWithShortUser
-	response.Product = ProductFromSchema(&product.Product)
+	response.Product = ProductFromSchema(product)
 	response.Creator = ShortUser{
 		ID: strconv.FormatUint(uint64(product.User.ID), 10),
 	}

@@ -33,3 +33,10 @@ where id = $1;
 select coalesce(sum(purchases.cost), 0)
 from purchases
 where product = $1;
+
+-- name: GetUnclaimedRevenuesOfUser :one
+select coalesce(sum(purchases.cost), 0), count(purchases)
+from purchases
+         left join public.products p on p.id = purchases.product
+         left join public.users u on u.id = p.creator
+where u.id = $1;

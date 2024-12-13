@@ -111,6 +111,26 @@ func (q *Queries) GetUnclaimedRevenuesOfProduct(ctx context.Context, product int
 	return coalesce, err
 }
 
+const getUnclaimedRevenuesOfUser = `-- name: GetUnclaimedRevenuesOfUser :one
+select coalesce(sum(purchases.cost), 0), count(purchases)
+from purchases
+         left join public.products p on p.id = purchases.product
+         left join public.users u on u.id = p.creator
+where u.id = $1
+`
+
+type GetUnclaimedRevenuesOfUserRow struct {
+	Coalesce interface{} `json:"coalesce"`
+	Count    int64       `json:"count"`
+}
+
+func (q *Queries) GetUnclaimedRevenuesOfUser(ctx context.Context, id int64) (*GetUnclaimedRevenuesOfUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getUnclaimedRevenuesOfUser, id)
+	var i GetUnclaimedRevenuesOfUserRow
+	err := row.Scan(&i.Coalesce, &i.Count)
+	return &i, err
+}
+
 const listProductPurchases = `-- name: ListProductPurchases :many
 select id, purchaser, product, purchased_at, claimed, cost
 from purchases

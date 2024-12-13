@@ -18,7 +18,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 			a.POST("/:id/file/", uploadFile)
 			a.GET("/:id/file/", getFile)
 			a.POST("/:id/purchase/", purchaseProduct)
-			a.GET("/:id/purchased/", getPurchase)
+			a.GET("/:id/purchase/", getPurchase)
 			a.GET("/:id/revenues/", getUnclaimedRevenues)
 		})
 

@@ -23,18 +23,19 @@ func uploadFile(ctx *gin.Context) {
 		return
 	}
 
-	user := middlewares.GetUser(ctx)
-	if !permissions.RequireUserPermission(ctx, user, permissions.ManageProducts) {
-		return
-	}
-
-	_, err = a.Queries.GetProductById(ctx, int64(id))
+	product, err := a.Queries.GetProductById(ctx, int64(id))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, perrors.ProductNotFound.MakeJSON())
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		}
+		return
+	}
+
+	user := middlewares.GetUser(ctx)
+	if !permissions.CheckUserPermission(permissions.UserPermission(user.Permissions), permissions.ManageProducts) && product.Product.Creator != user.ID {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
 		return
 	}
 

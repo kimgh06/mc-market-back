@@ -148,7 +148,7 @@ func listProducts(ctx *gin.Context) {
 	}
 
 	fullProducts := utilities.Map(products, func(u *schema.ListProductsRow) responses.ProductWithShortUser {
-		converted := responses.ProductWithShortUserFromSchema(u)
+		converted := responses.ProductWithShortUserFromSchema((*schema.GetProductByIdRow)(u))
 
 		if username, found := creatorIdToUsernameMap[uint64(u.User.ID)]; found {
 			converted.Creator.Username = &username

@@ -57,6 +57,10 @@ func createProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, responses.ProductFromSchema(product))
+	ctx.JSON(http.StatusOK, responses.ProductFromSchema(&schema.GetProductByIdRow{
+		Product: *product,
+		User:    *user,
+		Count:   0,
+	}))
 	return
 }

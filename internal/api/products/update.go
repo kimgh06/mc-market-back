@@ -19,11 +19,18 @@ func updateProduct(ctx *gin.Context) {
 
 	id, err := api.GetUint64FromParam(ctx, "id")
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidSnowflake.WithJSON(err.Error()))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidSnowflake.MakeJSON(err.Error()))
 		return
 	}
 
-	if !permissions.RequireUserPermission(ctx, user, permissions.ManageProducts) {
+	product, err := a.Queries.GetProductById(ctx, int64(id))
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+		return
+	}
+
+	if !permissions.CheckUserPermission(permissions.UserPermission(user.Permissions), permissions.ManageProducts) && product.Product.Creator != user.ID {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
 		return
 	}
 
@@ -40,7 +47,12 @@ func updateProduct(ctx *gin.Context) {
 		return
 	}
 
-	product, err := a.Queries.UpdateProduct(ctx, schema.UpdateProductParams{
+	if !permissions.CheckUserPermission(permissions.UserPermission(user.Permissions), permissions.ManageProducts) {
+		casted := uint64(user.ID)
+		body.Creator = &casted
+	}
+
+	updated, err := a.Queries.UpdateProduct(ctx, schema.UpdateProductParams{
 		ID:          int64(id),
 		Creator:     nullable.UPointerToInt64(body.Creator),
 		Name:        nullable.PointerToString(body.Name),
@@ -54,6 +66,10 @@ func updateProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, responses.ProductFromSchema(product))
+	ctx.JSON(http.StatusOK, responses.ProductFromSchema(&schema.GetProductByIdRow{
+		Product: *updated,
+		User:    *user,
+		Count:   0,
+	}))
 	return
 }

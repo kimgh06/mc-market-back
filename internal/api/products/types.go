@@ -10,10 +10,11 @@ type CreateProductBody struct {
 }
 
 type UpdateProductBody struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
-	Usage       *string `json:"usage"`
-	Category    *string `json:"category"`
-	Price       *int32  `json:"price" validate:"gte=0"`
-	Creator     *uint64 `json:"creator"`
+	Name          *string `json:"name"`
+	Description   *string `json:"description"`
+	Usage         *string `json:"usage"`
+	Category      *string `json:"category"`
+	Price         *int32  `json:"price" validate:"gte=0"`
+	DiscountPrice *int32  `json:"discount_price" validate:"gte=0"`
+	Creator       *uint64 `json:"creator"`
 }

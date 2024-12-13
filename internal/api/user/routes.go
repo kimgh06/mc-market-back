@@ -11,6 +11,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 			a.Use(middlewares.RequireAuthentication(a))
 
 			a.GET("/session/", getSessionUser)
+			a.GET("/revenues/", getUnclaimedRevenues)
 			a.GET("/", listUsers)
 			a.POST("/:id/", updateUser)
 		})
