@@ -14,6 +14,9 @@ const (
 	FailedValidate Code = "failed_validate"
 	FailedMarshal  Code = "failed_marshal"
 
+	Mismatching Code = "mismatching"
+
+	InvalidQuery     Code = "invalid_query"
 	InvalidJSON      Code = "invalid_json"
 	InvalidParameter Code = "invalid_parameter"
 	InvalidUUID      Code = "invalid_uuid"
@@ -26,4 +29,5 @@ const (
 	InsufficientFunds Code = "insufficient_funds"
 	DuplicatePurchase Code = "duplicate_purchase"
 	PurchaseNotFound
+	PaymentNotFound Code = "payment_not_found"
 )

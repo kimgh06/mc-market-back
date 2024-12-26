@@ -10,6 +10,7 @@ import (
 	"maple/internal/storage"
 	"maple/internal/surge"
 	"net/http"
+	"time"
 )
 
 type MapleAPI struct {
@@ -24,6 +25,8 @@ type MapleAPI struct {
 	SurgeAPI  *surge.API
 
 	JWKS *MapleJWKS
+
+	StartedAt time.Time
 }
 
 type MapleAPIOptions func(*MapleAPI)

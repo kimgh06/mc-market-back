@@ -7,4 +7,5 @@ const (
 	ListUsers
 	ManageProducts
 	ManageUsers
+	ManageArticles
 )

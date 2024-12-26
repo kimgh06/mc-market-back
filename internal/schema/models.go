@@ -7,7 +7,19 @@ package schema
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
+
+type Article struct {
+	ID        int64         `json:"id"`
+	Title     string        `json:"title"`
+	Content   string        `json:"content"`
+	CreatedAt time.Time     `json:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at"`
+	Index     sql.NullInt32 `json:"index"`
+	Author    int64         `json:"author"`
+}
 
 type Download struct {
 	UserID    int64     `json:"user_id"`
@@ -18,6 +30,16 @@ type Download struct {
 type Like struct {
 	UserID    sql.NullInt64 `json:"user_id"`
 	ProductID sql.NullInt64 `json:"product_id"`
+}
+
+type Payment struct {
+	ID        int64        `json:"id"`
+	Agent     int64        `json:"agent"`
+	OrderID   uuid.UUID    `json:"order_id"`
+	Amount    int32        `json:"amount"`
+	Approved  bool         `json:"approved"`
+	CreatedAt time.Time    `json:"created_at"`
+	Failed    sql.NullBool `json:"failed"`
 }
 
 type Product struct {
