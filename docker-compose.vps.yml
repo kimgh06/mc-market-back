@@ -1,0 +1,32 @@
+services:
+  maple-postgres:
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
+    container_name: maple-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: maple
+    volumes:
+      - maple-postgres-data:/var/lib/postgres
+    networks:
+      dokploy-network:
+  maple-core:
+    container_name: maple-core
+    depends_on:
+      - maple-postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - ./maple
+    env_file:
+      - .env
+
+volumes:
+  maple-postgres-data:
+
+networks:
+  dokploy-network:
+    external: true
