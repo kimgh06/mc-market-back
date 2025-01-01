@@ -21,6 +21,7 @@ const (
 	InvalidParameter Code = "invalid_parameter"
 	InvalidUUID      Code = "invalid_uuid"
 	InvalidSnowflake Code = "invalid_snowflake"
+	InvalidHTML      Code = "invalid_html"
 
 	UserNotFound Code = "user_not_found"
 
@@ -30,4 +31,6 @@ const (
 	DuplicatePurchase Code = "duplicate_purchase"
 	PurchaseNotFound
 	PaymentNotFound Code = "payment_not_found"
+
+	UnknownInternalError Code = "unknown_internal_error"
 )

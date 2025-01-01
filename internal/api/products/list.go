@@ -41,6 +41,7 @@ func scanProductRows(rows *sql.Rows) ([]*schema.ListProductsRow, error) {
 			&i.Product.Name,
 			&i.Product.Description,
 			&i.Product.Usage,
+			&i.Product.Details,
 			&i.Product.Price,
 			&i.Product.PriceDiscount,
 			&i.Product.CreatedAt,
@@ -66,7 +67,7 @@ func listProducts(ctx *gin.Context) {
 	a := api.Get(ctx)
 	//user := middlewares.GetUser(ctx)
 
-	offset := utilities.Clamp(api.QueryIntDefault(ctx, "offset", 0), 0, math.MaxInt)
+	offset := utilities.Clamp(api.QueryIntDefault(ctx, "offset", math.MaxInt), 0, math.MaxInt)
 	limit := utilities.Clamp(api.QueryIntDefault(ctx, "limit", 20), 0, 20)
 	orderBy := strings.ToLower(api.QueryStringDefault(ctx, "order_by", "time"))
 	sort := strings.ToLower(api.QueryStringDefault(ctx, "sort", "desc"))
@@ -84,12 +85,12 @@ func listProducts(ctx *gin.Context) {
 	// Build Query
 	query := squirrel.
 		StatementBuilder.PlaceholderFormat(squirrel.Dollar).
-		Select("products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.created_at, products.updated_at, u.id, u.nickname, count(pu)").
+		Select("products.id, products.creator, products.category, products.name, products.description, products.usage, products.details, products.price, products.price_discount, products.created_at, products.updated_at, u.id, u.nickname, count(pu)").
 		From("products").
 		LeftJoin(fmt.Sprintf("public.users u ON u.id = products.creator")).
 		LeftJoin(fmt.Sprintf("public.purchases pu on pu.product = products.id"))
 
-	whereClause := squirrel.And{squirrel.Gt{"products.id": offset}}
+	whereClause := squirrel.And{squirrel.Lt{"products.id": offset}}
 
 	if filters.Creator != nil {
 		whereClause = append(whereClause, squirrel.Eq{"products.creator": filters.Creator})

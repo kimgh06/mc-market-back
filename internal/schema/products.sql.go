@@ -8,22 +8,27 @@ package schema
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 const createProduct = `-- name: CreateProduct :one
-insert into products (id, creator, name, description, usage, category, price)
-values ($1, $2, $3, $4, $5, $6, $7)
-returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at
+insert into products (id, creator, name, description, usage, category, price, price_discount, details, tags)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at, details, tags
 `
 
 type CreateProductParams struct {
-	ID          int64          `json:"id"`
-	Creator     int64          `json:"creator"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	Usage       sql.NullString `json:"usage"`
-	Category    string         `json:"category"`
-	Price       int32          `json:"price"`
+	ID            int64         `json:"id"`
+	Creator       int64         `json:"creator"`
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	Usage         string        `json:"usage"`
+	Category      string        `json:"category"`
+	Price         int32         `json:"price"`
+	PriceDiscount sql.NullInt32 `json:"price_discount"`
+	Details       string        `json:"details"`
+	Tags          []string      `json:"tags"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (*Product, error) {
@@ -35,6 +40,9 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (*
 		arg.Usage,
 		arg.Category,
 		arg.Price,
+		arg.PriceDiscount,
+		arg.Details,
+		pq.Array(arg.Tags),
 	)
 	var i Product
 	err := row.Scan(
@@ -49,6 +57,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (*
 		&i.Ts,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Details,
+		pq.Array(&i.Tags),
 	)
 	return &i, err
 }
@@ -65,7 +75,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 }
 
 const getProductById = `-- name: GetProductById :one
-select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, count(pu)
+select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, products.details, products.tags, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, count(pu)
 from products
          left join public.users u on u.id = products.creator
          left join public.purchases pu on pu.product = products.id
@@ -94,6 +104,8 @@ func (q *Queries) GetProductById(ctx context.Context, id int64) (*GetProductById
 		&i.Product.Ts,
 		&i.Product.CreatedAt,
 		&i.Product.UpdatedAt,
+		&i.Product.Details,
+		pq.Array(&i.Product.Tags),
 		&i.User.ID,
 		&i.User.Nickname,
 		&i.User.Permissions,
@@ -106,7 +118,7 @@ func (q *Queries) GetProductById(ctx context.Context, id int64) (*GetProductById
 }
 
 const listProducts = `-- name: ListProducts :many
-select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, count(pu)
+select products.id, products.creator, products.category, products.name, products.description, products.usage, products.price, products.price_discount, products.ts, products.created_at, products.updated_at, products.details, products.tags, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, count(pu)
 from products
          left join public.users u on u.id = products.creator
          left join public.purchases pu on pu.product = products.id
@@ -148,6 +160,8 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]*
 			&i.Product.Ts,
 			&i.Product.CreatedAt,
 			&i.Product.UpdatedAt,
+			&i.Product.Details,
+			pq.Array(&i.Product.Tags),
 			&i.User.ID,
 			&i.User.Nickname,
 			&i.User.Permissions,
@@ -171,24 +185,30 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]*
 
 const updateProduct = `-- name: UpdateProduct :one
 update products
-set creator     = coalesce($2, creator),
-    name        = coalesce($3, name),
-    description = coalesce($4, description),
-    usage       = coalesce($5, usage),
-    category    = coalesce($6, category),
-    price       = coalesce($7, price)
+set creator        = coalesce($2, creator),
+    name           = coalesce($3, name),
+    description    = coalesce($4, description),
+    usage          = coalesce($5, usage),
+    details        = coalesce($6, details),
+    category       = coalesce($7, category),
+    tags           = coalesce($8, tags),
+    price          = coalesce($9, price),
+    price_discount = coalesce($10, price_discount)
 where id = $1
-returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at
+returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at, details, tags
 `
 
 type UpdateProductParams struct {
-	ID          int64          `json:"id"`
-	Creator     sql.NullInt64  `json:"creator"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	Usage       sql.NullString `json:"usage"`
-	Category    sql.NullString `json:"category"`
-	Price       sql.NullInt32  `json:"price"`
+	ID            int64          `json:"id"`
+	Creator       sql.NullInt64  `json:"creator"`
+	Name          sql.NullString `json:"name"`
+	Description   sql.NullString `json:"description"`
+	Usage         sql.NullString `json:"usage"`
+	Details       sql.NullString `json:"details"`
+	Category      sql.NullString `json:"category"`
+	Tags          []string       `json:"tags"`
+	Price         sql.NullInt32  `json:"price"`
+	PriceDiscount sql.NullInt32  `json:"price_discount"`
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (*Product, error) {
@@ -198,8 +218,11 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (*
 		arg.Name,
 		arg.Description,
 		arg.Usage,
+		arg.Details,
 		arg.Category,
+		pq.Array(arg.Tags),
 		arg.Price,
+		arg.PriceDiscount,
 	)
 	var i Product
 	err := row.Scan(
@@ -214,6 +237,8 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (*
 		&i.Ts,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Details,
+		pq.Array(&i.Tags),
 	)
 	return &i, err
 }

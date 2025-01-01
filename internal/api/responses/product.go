@@ -13,6 +13,11 @@ type Product struct {
 
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Usage       string `json:"usage"`
+
+	Details string `json:"details"`
+
+	Tags []string `json:"tags"`
 
 	Category string `json:"category"`
 
@@ -32,9 +37,10 @@ func ProductFromSchema(row *schema.GetProductByIdRow) Product {
 	response.ID = strconv.FormatUint(uint64(product.ID), 10)
 	response.Creator = strconv.FormatUint(uint64(product.Creator), 10)
 	response.Name = product.Name
-	if product.Description.Valid {
-		response.Description = product.Description.String
-	}
+	response.Description = product.Description
+	response.Usage = product.Usage
+	response.Details = product.Details
+	response.Tags = product.Tags
 	response.Category = product.Category
 	response.CreatedAt = product.CreatedAt
 	response.UpdatedAt = product.UpdatedAt
