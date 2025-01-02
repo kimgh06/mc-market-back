@@ -1,8 +1,10 @@
 package articles
 
 import (
+	"bytes"
 	"github.com/gin-gonic/gin"
 	"github.com/godruoyi/go-snowflake"
+	"html/template"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
@@ -25,10 +27,22 @@ func createArticle(ctx *gin.Context) {
 		return
 	}
 
-	_, err := a.Queries.CreateArticle(ctx, schema.CreateArticleParams{
+	tmpl, err := template.New("article.content").Parse(body.Content)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.UnknownInternalError.MakeJSON(err.Error()))
+		return
+	}
+	buffer := new(bytes.Buffer)
+
+	if err = tmpl.Execute(buffer, body); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidHTML.MakeJSON(err.Error()))
+		return
+	}
+
+	_, err = a.Queries.CreateArticle(ctx, schema.CreateArticleParams{
 		ID:      int64(snowflake.ID()),
 		Title:   body.Title,
-		Content: body.Content,
+		Content: buffer.String(),
 		Author:  user.ID,
 	})
 	if err != nil {

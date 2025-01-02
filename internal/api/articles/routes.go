@@ -3,7 +3,6 @@ package articles
 import (
 	"maple/internal/api"
 	"maple/internal/middlewares"
-	"maple/pkg/permissions"
 )
 
 func InitializeRoutes(a *api.MapleAPI) {
@@ -14,7 +13,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 	})
 
 	a.Route("/articles", func(a *api.MapleAPI) {
-		a.Use(middlewares.RequireAuthentication(a), middlewares.RequireUserPermission(permissions.ManageArticles))
+		a.Use(middlewares.RequireAuthentication(a))
 
 		a.POST("/", createArticle)
 		a.DELETE("/:id/", deleteArticle)

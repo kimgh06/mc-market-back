@@ -32,5 +32,7 @@ const (
 	PurchaseNotFound
 	PaymentNotFound Code = "payment_not_found"
 
+	ArticleNotFound Code = "article_not_found"
+
 	UnknownInternalError Code = "unknown_internal_error"
 )

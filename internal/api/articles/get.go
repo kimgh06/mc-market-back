@@ -1,6 +1,8 @@
 package articles
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"maple/internal/api"
 	"maple/internal/perrors"
@@ -23,11 +25,17 @@ func getArticle(ctx *gin.Context) {
 
 	id, err := api.GetUint64FromParam(ctx, "id")
 	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidSnowflake)
 		return
 	}
 
 	article, err := a.Queries.GetArticle(ctx, int64(id))
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, perrors.ArticleNotFound.MakeJSON())
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return
 	}
 
