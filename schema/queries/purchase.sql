@@ -40,3 +40,11 @@ from purchases
          left join public.products p on p.id = purchases.product
          left join public.users u on u.id = p.creator
 where u.id = $1;
+
+-- name: GetUnclaimedPurchasesOfUser :many
+select purchases.cost, purchases.purchased_at, sqlc.embed(p)
+from purchases
+         left join public.products p on p.id = purchases.product
+         left join public.users u on u.id = p.creator
+where u.id = $1
+  and claimed = false;

@@ -7,6 +7,9 @@ package schema
 
 import (
 	"context"
+	"time"
+
+	"github.com/lib/pq"
 )
 
 const createPurchase = `-- name: CreatePurchase :one
@@ -96,6 +99,60 @@ func (q *Queries) GetPurchaseById(ctx context.Context, id int64) (*Purchase, err
 		&i.Cost,
 	)
 	return &i, err
+}
+
+const getUnclaimedPurchasesOfUser = `-- name: GetUnclaimedPurchasesOfUser :many
+select purchases.cost, purchases.purchased_at, p.id, p.creator, p.category, p.name, p.description, p.usage, p.price, p.price_discount, p.ts, p.created_at, p.updated_at, p.details, p.tags
+from purchases
+         left join public.products p on p.id = purchases.product
+         left join public.users u on u.id = p.creator
+where u.id = $1
+  and claimed = false
+`
+
+type GetUnclaimedPurchasesOfUserRow struct {
+	Cost        int32     `json:"cost"`
+	PurchasedAt time.Time `json:"purchased_at"`
+	Product     Product   `json:"product"`
+}
+
+func (q *Queries) GetUnclaimedPurchasesOfUser(ctx context.Context, id int64) ([]*GetUnclaimedPurchasesOfUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUnclaimedPurchasesOfUser, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetUnclaimedPurchasesOfUserRow
+	for rows.Next() {
+		var i GetUnclaimedPurchasesOfUserRow
+		if err := rows.Scan(
+			&i.Cost,
+			&i.PurchasedAt,
+			&i.Product.ID,
+			&i.Product.Creator,
+			&i.Product.Category,
+			&i.Product.Name,
+			&i.Product.Description,
+			&i.Product.Usage,
+			&i.Product.Price,
+			&i.Product.PriceDiscount,
+			&i.Product.Ts,
+			&i.Product.CreatedAt,
+			&i.Product.UpdatedAt,
+			&i.Product.Details,
+			pq.Array(&i.Product.Tags),
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUnclaimedRevenuesOfProduct = `-- name: GetUnclaimedRevenuesOfProduct :one

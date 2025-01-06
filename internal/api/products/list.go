@@ -90,7 +90,7 @@ func listProducts(ctx *gin.Context) {
 		LeftJoin(fmt.Sprintf("public.users u ON u.id = products.creator")).
 		LeftJoin(fmt.Sprintf("public.purchases pu on pu.product = products.id"))
 
-	whereClause := squirrel.And{squirrel.Lt{"products.id": offset}}
+	whereClause := squirrel.And{squirrel.Gt{"products.id": offset}}
 
 	if filters.Creator != nil {
 		whereClause = append(whereClause, squirrel.Eq{"products.creator": filters.Creator})
@@ -111,7 +111,7 @@ func listProducts(ctx *gin.Context) {
 		whereClause = append(whereClause, squirrel.Lt{"coalesce(products.price_discount, products.price)": *filters.PriceRangeEnd})
 	}
 
-	query = query.Where(whereClause).GroupBy("products.id, u.id")
+	query = query.Where(whereClause).GroupBy("products.id, products.created_at, u.id")
 
 	switch orderBy {
 	case "purchases":
@@ -125,6 +125,8 @@ func listProducts(ctx *gin.Context) {
 	}
 
 	query = query.Limit(uint64(limit))
+
+	//println(query.ToSql())
 
 	rows, err := query.RunWith(a.Conn).Query()
 	if err != nil {

@@ -2,6 +2,7 @@ package products
 
 import (
 	"bytes"
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"html/template"
@@ -68,6 +69,7 @@ func updateProduct(ctx *gin.Context) {
 
 	updated, err := a.Queries.UpdateProduct(ctx, schema.UpdateProductParams{
 		ID:          int64(id),
+		Details:     sql.NullString{String: buffer.String(), Valid: true},
 		Creator:     nullable.UPointerToInt64(body.Creator),
 		Name:        nullable.PointerToString(body.Name),
 		Description: nullable.PointerToString(body.Description),

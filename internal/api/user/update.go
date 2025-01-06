@@ -23,14 +23,19 @@ func updateUser(ctx *gin.Context) {
 		return
 	}
 
-	if !permissions.RequireUserPermission(ctx, user, permissions.ManageUsers) {
-		return
-	}
-
 	body := UpdateUserBody{}
 	if err = ctx.ShouldBind(&body); err != nil {
 		// failed to bind body, abort
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
+		return
+	}
+
+	println("%+v", body.Nickname)
+
+	if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
+		if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {
+			ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
+		}
 		return
 	}
 
