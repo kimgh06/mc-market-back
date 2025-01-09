@@ -67,7 +67,7 @@ func listProducts(ctx *gin.Context) {
 	a := api.Get(ctx)
 	//user := middlewares.GetUser(ctx)
 
-	offset := utilities.Clamp(api.QueryIntDefault(ctx, "offset", math.MaxInt), 0, math.MaxInt)
+	offset := utilities.Clamp(api.QueryIntDefault(ctx, "offset", 0), 0, math.MaxInt)
 	limit := utilities.Clamp(api.QueryIntDefault(ctx, "limit", 20), 0, 20)
 	orderBy := strings.ToLower(api.QueryStringDefault(ctx, "order_by", "time"))
 	sort := strings.ToLower(api.QueryStringDefault(ctx, "sort", "desc"))
@@ -96,7 +96,13 @@ func listProducts(ctx *gin.Context) {
 		whereClause = append(whereClause, squirrel.Eq{"products.creator": filters.Creator})
 	}
 	if filters.Category != nil {
-		whereClause = append(whereClause, squirrel.Eq{"products.category": filters.Category})
+		split := strings.Split(*filters.Category, ".")
+
+		if len(split) == 1 {
+			whereClause = append(whereClause, squirrel.Or{squirrel.Like{"products.category": fmt.Sprintf("%s.%%", *filters.Category)}, squirrel.Eq{"products.category": *filters.Category}})
+		} else {
+			whereClause = append(whereClause, squirrel.Eq{"products.category": filters.Category})
+		}
 	}
 	if filters.Keyword != nil {
 		keywordSanitized := SpecialCharacterRegexp.ReplaceAllString(*filters.Keyword, "")
@@ -126,7 +132,8 @@ func listProducts(ctx *gin.Context) {
 
 	query = query.Limit(uint64(limit))
 
-	//println(query.ToSql())
+	generated, args, _ := query.ToSql()
+	fmt.Printf("Query: %s | %+v\n", generated, args)
 
 	rows, err := query.RunWith(a.Conn).Query()
 	if err != nil {

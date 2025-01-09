@@ -7,6 +7,7 @@ package schema
 
 import (
 	"context"
+	"database/sql"
 )
 
 const countArticles = `-- name: CountArticles :one
@@ -22,16 +23,17 @@ func (q *Queries) CountArticles(ctx context.Context) (int64, error) {
 }
 
 const createArticle = `-- name: CreateArticle :one
-insert into articles (id, title, content, author)
-values ($1, $2, $3, $4)
-returning id, title, content, created_at, updated_at, index, author
+insert into articles (id, title, content, author, head)
+values ($1, $2, $3, $4, $5)
+returning id, title, content, created_at, updated_at, index, author, head
 `
 
 type CreateArticleParams struct {
-	ID      int64  `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Author  int64  `json:"author"`
+	ID      int64          `json:"id"`
+	Title   string         `json:"title"`
+	Content string         `json:"content"`
+	Author  int64          `json:"author"`
+	Head    sql.NullString `json:"head"`
 }
 
 func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*Article, error) {
@@ -40,6 +42,7 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*
 		arg.Title,
 		arg.Content,
 		arg.Author,
+		arg.Head,
 	)
 	var i Article
 	err := row.Scan(
@@ -50,6 +53,7 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*
 		&i.UpdatedAt,
 		&i.Index,
 		&i.Author,
+		&i.Head,
 	)
 	return &i, err
 }
@@ -66,7 +70,7 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 }
 
 const getArticle = `-- name: GetArticle :one
-select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
 from articles
          left join public.users u on u.id = articles.author
 where articles.id = $1
@@ -88,6 +92,7 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 		&i.Article.UpdatedAt,
 		&i.Article.Index,
 		&i.Article.Author,
+		&i.Article.Head,
 		&i.User.ID,
 		&i.User.Nickname,
 		&i.User.Permissions,
@@ -99,7 +104,7 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 }
 
 const listArticles = `-- name: ListArticles :many
-select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
 from articles
          left join public.users u on u.id = articles.author
 where index > $2::int
@@ -134,6 +139,7 @@ func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*
 			&i.Article.UpdatedAt,
 			&i.Article.Index,
 			&i.Article.Author,
+			&i.Article.Head,
 			&i.User.ID,
 			&i.User.Nickname,
 			&i.User.Permissions,

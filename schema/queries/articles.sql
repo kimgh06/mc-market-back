@@ -1,6 +1,6 @@
 -- name: CreateArticle :one
-insert into articles (id, title, content, author)
-values ($1, $2, $3, $4)
+insert into articles (id, title, content, author, head)
+values ($1, $2, $3, $4, $5)
 returning *;
 
 -- name: GetArticle :one

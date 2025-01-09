@@ -2,6 +2,7 @@ package articles
 
 import (
 	"bytes"
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/godruoyi/go-snowflake"
 	"html/template"
@@ -15,6 +16,7 @@ import (
 type CreateArticle struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
+	Head    string `json:"head"`
 }
 
 func createArticle(ctx *gin.Context) {
@@ -44,6 +46,7 @@ func createArticle(ctx *gin.Context) {
 		Title:   body.Title,
 		Content: buffer.String(),
 		Author:  user.ID,
+		Head:    sql.NullString{Valid: body.Head != "", String: body.Head},
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))

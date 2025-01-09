@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"maple/internal/api"
+	"maple/internal/nullable"
 	"maple/internal/perrors"
 	"net/http"
 	"strconv"
@@ -16,6 +17,7 @@ type getArticleResponse struct {
 	Title     string        `json:"title"`
 	Content   string        `json:"content"`
 	Author    ArticleAuthor `json:"author"`
+	Head      *string       `json:"head"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at"`
 }
@@ -54,6 +56,7 @@ func getArticle(ctx *gin.Context) {
 			Username: usernames[0],
 			Nickname: article.User.Nickname.String,
 		},
+		Head:      nullable.StringToPointer(article.Article.Head),
 		CreatedAt: article.Article.CreatedAt,
 		UpdatedAt: article.Article.UpdatedAt,
 	})
