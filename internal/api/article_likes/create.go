@@ -45,10 +45,8 @@ func createArticleLike(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusConflict, perrors.ArticleLikeExists.MakeJSON("you have already liked/disliked this article"))
-		return
 	}
-
+	
 	if err = a.Queries.CreateArticleLike(ctx, schema.CreateArticleLikeParams{
 		ArticleID: uint64(articleID),
 		UserID:    uint64(user.ID),

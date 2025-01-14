@@ -118,9 +118,10 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 }
 
 const listArticles = `-- name: ListArticles :many
-select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, CASE WHEN articles.content LIKE '%<img src%' THEN TRUE ELSE FALSE END AS has_img, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, CASE WHEN articles.content LIKE '%<img src%' THEN TRUE ELSE FALSE END AS has_img, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, 
+	(select count(*) from comments where comments.article_id = articles.id) as comment_count
 from articles
-         left join public.users u on u.id = articles.author
+		left join public.users u on u.id = articles.author
 where index > $2::int
 order by articles.created_at desc
 limit $1
@@ -129,12 +130,14 @@ limit $1
 type ListArticlesParams struct {
 	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
+	ArticleID int64 `json:"article_id"`
 }
 
 type ListArticlesRow struct {
 	Article Article `json:"article"`
 	HasImg bool    `json:"has_img"`
 	User    User    `json:"user"`
+	CommentCount int64 `json:"comment_count"`
 }
 
 func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*ListArticlesRow, error) {
@@ -163,6 +166,7 @@ func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*
 			&i.User.CreatedAt,
 			&i.User.UpdatedAt,
 			&i.User.Cash,
+			&i.CommentCount,
 		); err != nil {
 			return nil, err
 		}

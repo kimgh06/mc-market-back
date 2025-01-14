@@ -14,7 +14,7 @@ import (
 )
 
 type UpdateArticleLike struct {
-	Like bool `json:"like" binding:"required"`
+	Like *bool `json:"like" binding:"required"` // 수정: exists -> required
 }
 
 func updateArticleLike(ctx *gin.Context) {
@@ -22,7 +22,7 @@ func updateArticleLike(ctx *gin.Context) {
 	user := middlewares.GetUser(ctx)
 
 	var body UpdateArticleLike
-	if err := ctx.ShouldBind(&body); err != nil {
+	if err := ctx.ShouldBindJSON(&body); err != nil { // 수정: ShouldBind -> ShouldBindJSON
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
 		return
 	}
@@ -49,10 +49,15 @@ func updateArticleLike(ctx *gin.Context) {
 		return
 	}
 
+	if body.Like == nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidParameter.MakeJSON("The 'like' field is required and must be a boolean"))
+		return
+	}
+
 	if err = a.Queries.UpdateArticleLike(ctx, schema.UpdateArticleLikeParams{
-		ArticleID:    uint64(articleID),
-		UserID: 		 uint64(user.ID),
-		Kind:  body.Like,
+		ArticleID: uint64(articleID),
+		UserID:    uint64(user.ID),
+		Kind:      *body.Like,
 	}); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return

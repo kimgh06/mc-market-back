@@ -20,6 +20,7 @@ type listArticlesElement struct {
 	UpdatedAt time.Time     `json:"updated_at"`
 	Views 		int64         `json:"views"`
 	HasImg 	bool          `json:"has_img"`
+	CommentCount int64      `json:"comment_count"`
 }
 
 func listArticles(ctx *gin.Context) {
@@ -75,6 +76,7 @@ func listArticles(ctx *gin.Context) {
 			UpdatedAt: row.Article.UpdatedAt,
 			Views:     row.Article.Views,
 			HasImg:    row.HasImg,
+			CommentCount: row.CommentCount,
 		}
 	}
 
