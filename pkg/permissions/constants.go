@@ -8,4 +8,5 @@ const (
 	ManageProducts
 	ManageUsers
 	ManageArticles
+	ManageComments
 )

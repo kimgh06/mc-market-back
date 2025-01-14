@@ -1,10 +1,11 @@
 package permissions
 
 import (
-	"github.com/gin-gonic/gin"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CheckUserPermission(value UserPermission, flag UserPermission) bool {

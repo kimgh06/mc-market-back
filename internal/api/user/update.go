@@ -1,8 +1,6 @@
 package user
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"maple/internal/api"
 	"maple/internal/api/responses"
 	"maple/internal/middlewares"
@@ -11,6 +9,9 @@ import (
 	"maple/internal/schema"
 	"maple/pkg/permissions"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 func updateUser(ctx *gin.Context) {
@@ -30,7 +31,7 @@ func updateUser(ctx *gin.Context) {
 		return
 	}
 
-	println("%+v", body.Nickname)
+	println(user.ID, id, body.Permissions, body.Cash)
 
 	if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
 		if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {

@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"github.com/godruoyi/go-snowflake"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/godruoyi/go-snowflake"
 )
 
 type CreateUserBody struct {

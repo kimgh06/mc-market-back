@@ -33,6 +33,9 @@ const (
 	PaymentNotFound Code = "payment_not_found"
 
 	ArticleNotFound Code = "article_not_found"
+	CommentNotFound Code = "comment_not_found"
+	ArticleLikeNotFound Code = "article_like_not_found"
+	ArticleLikeExists Code = "article_like_exists"
 
 	UnknownInternalError Code = "unknown_internal_error"
 )

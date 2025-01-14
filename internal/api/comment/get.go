@@ -1,56 +1,51 @@
-package articles
+package comment
 
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"maple/internal/api"
-	"maple/internal/nullable"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
 
 type userGetResponse struct {
 	ID       uint64  `json:"id"`
 	Nickname *string `json:"nickname"`
 }
 
-type commentType struct {
+type getCommentResponse struct {
 	ID        string    `json:"id"`
 	ArticleID string    `json:"article_id"`
 	User 		userGetResponse `json:"user"`
-	Replies  []commentType `json:"replies"`
+	Replies  []getCommentResponse `json:"replies"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type getCommentsResponse struct {
-	Comments []commentType `json:"comments"`
-	Count    int64         `json:"count"`
-}
-
-func getReplies(ctx *gin.Context, commentID int64) []commentType {
+func getReplies(ctx *gin.Context, commentID int64) []getCommentResponse {
 	a:= api.Get(ctx)
 	replies, err:= a.Queries.ListComments(ctx, schema.ListCommentsParams{ReplyFrom: &commentID})
 
 	if err != nil {
-		return []commentType{}
+		return []getCommentResponse{}
 	}
 
-	var response []commentType
+	var response []getCommentResponse
 	for _, reply := range replies {
 		user, err := a.Queries.GetUserById(ctx, reply.UserID)
 		if err != nil {
-			return []commentType{}
+			return []getCommentResponse{}
 		}
 
-		response = append(response, commentType{
+		response = append(response, getCommentResponse{
 			ID:        strconv.FormatUint(uint64(reply.ID), 10),
 			ArticleID: strconv.FormatUint(uint64(reply.ArticleID), 10),
 			User: userGetResponse{
@@ -71,35 +66,50 @@ func getReplies(ctx *gin.Context, commentID int64) []commentType {
 	return response
 }
 
-func listComments(ctx *gin.Context, articleID uint64) getCommentsResponse {
+func listComments(ctx *gin.Context){
 	a := api.Get(ctx)
 
-	comments, err := a.Queries.ListComments(ctx, schema.ListCommentsParams{ArticleID: articleID, PageID: 1})
+	articleID, err := api.GetUint64FromParam(ctx, "article_id")
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidSnowflake)
+		return
+	}
+
+	page  := strings.Replace(ctx.Query("page"), "/", "", 1)
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		// Handle error if conversion fails
+		fmt.Println("Error converting to int:", err)
+		return
+	}
+
+	comments, err := a.Queries.ListComments(ctx, schema.ListCommentsParams{ArticleID: articleID, PageID: int32(pageInt)})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
-		return getCommentsResponse{}
+		return
 	}
 	
 	if len(comments) == 0 {
-		return getCommentsResponse{}
+		ctx.JSON(http.StatusOK, []getCommentResponse{})
+		return
 	}
 	count, err := a.Queries.GetCountFromArticleId(ctx, schema.GetCountFromArticleId{ArticleID: articleID})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
-		return getCommentsResponse{}
+		return
 	}
 
-	var response []commentType
+	var response []getCommentResponse
 	for _, comment := range comments {
 		user, err := a.Queries.GetUserById(ctx, comment.UserID)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
-			return getCommentsResponse{}
+			return
 		}
 
 		replies := getReplies(ctx, comment.ID)
 
-		response = append(response, commentType{
+		response = append(response, getCommentResponse{
 			ID:        strconv.FormatUint(uint64(comment.ID), 10),
 			ArticleID: strconv.FormatUint(uint64(comment.ArticleID), 10),
 			User: userGetResponse{
@@ -118,65 +128,48 @@ func listComments(ctx *gin.Context, articleID uint64) getCommentsResponse {
 		})
 	}
 
-	return getCommentsResponse{
-		Comments: response,
-		Count:    count,
-	}
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"comments": response,
+		"count":    count,
+	})
 }
 
-
-type getArticleResponse struct {
-	ID        string        `json:"id"`
-	Title     string        `json:"title"`
-	Content   string        `json:"content"`
-	Author    ArticleAuthor `json:"author"`
-	Head      *string       `json:"head"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
-	Views		  int64         `json:"views"`
-	Comments	getCommentsResponse `json:"comments"`
-}
-
-func getArticle(ctx *gin.Context) {
+func getoneComment(ctx *gin.Context) {
 	a := api.Get(ctx)
 
-	id, err := api.GetUint64FromParam(ctx, "id")
+	commentID, err := api.GetUint64FromParam(ctx, "comment_id")
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidSnowflake)
 		return
 	}
 
-	article, err := a.Queries.GetArticle(ctx, int64(id))
+	comment, err := a.Queries.GetComment(ctx, int64(commentID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, perrors.ArticleNotFound.MakeJSON())
+			ctx.AbortWithStatusJSON(http.StatusNotFound, perrors.CommentNotFound.MakeJSON())
 			return
 		}
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return
 	}
 
-	usernames, err := a.SurgeAPI.ResolveUsernames([]uint64{uint64(article.User.ID)})
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
-		return
-	}
+	user, err := a.Queries.GetUserById(ctx, comment.UserID)
 
-	comments := listComments(ctx, uint64(article.Article.ID))
-
-	ctx.JSON(http.StatusOK, getArticleResponse{
-		ID:      strconv.FormatUint(uint64(article.Article.ID), 10),
-		Title:   article.Article.Title,
-		Content: article.Article.Content,
-		Author: ArticleAuthor{
-			ID:       strconv.FormatInt(article.User.ID, 10),
-			Username: usernames[0],
-			Nickname: article.User.Nickname.String,
+	ctx.JSON(http.StatusOK, getCommentResponse{
+		ID:        strconv.FormatUint(uint64(comment.ID), 10),
+		ArticleID: strconv.FormatUint(uint64(comment.ArticleID), 10),
+		User: userGetResponse{
+			ID:       uint64(comment.UserID),
+			Nickname: func() *string {
+				if user.Nickname.Valid {
+					return &user.Nickname.String
+				}
+				return nil
+			}(),
 		},
-		Head:      nullable.StringToPointer(article.Article.Head),
-		CreatedAt: article.Article.CreatedAt,
-		UpdatedAt: article.Article.UpdatedAt,
-		Views:    article.Article.Views,
-		Comments: comments,
+		Replies: getReplies(ctx, comment.ID),
+		Content:   comment.Content,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
 	})
 }

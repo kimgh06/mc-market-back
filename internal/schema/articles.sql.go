@@ -70,10 +70,16 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 }
 
 const getArticle = `-- name: GetArticle :one
-select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
 from articles
          left join public.users u on u.id = articles.author
 where articles.id = $1
+`
+
+const updateViews = `-- name: UpdateViews :exec
+update articles
+set views = views + 1
+where id = $1
 `
 
 type GetArticleRow struct {
@@ -82,9 +88,13 @@ type GetArticleRow struct {
 }
 
 func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, error) {
+	_, err := q.db.ExecContext(ctx, updateViews, id)
+	if err != nil {
+		return nil, err
+	}
 	row := q.db.QueryRowContext(ctx, getArticle, id)
 	var i GetArticleRow
-	err := row.Scan(
+	err = row.Scan(
 		&i.Article.ID,
 		&i.Article.Title,
 		&i.Article.Content,
@@ -93,6 +103,7 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 		&i.Article.Index,
 		&i.Article.Author,
 		&i.Article.Head,
+		&i.Article.Views,
 		&i.User.ID,
 		&i.User.Nickname,
 		&i.User.Permissions,
@@ -100,11 +111,14 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 		&i.User.UpdatedAt,
 		&i.User.Cash,
 	)
+	if err != nil {
+		return nil, err
+	}
 	return &i, err
 }
 
 const listArticles = `-- name: ListArticles :many
-select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, CASE WHEN articles.content LIKE '%<img src%' THEN TRUE ELSE FALSE END AS has_img, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
 from articles
          left join public.users u on u.id = articles.author
 where index > $2::int
@@ -119,6 +133,7 @@ type ListArticlesParams struct {
 
 type ListArticlesRow struct {
 	Article Article `json:"article"`
+	HasImg bool    `json:"has_img"`
 	User    User    `json:"user"`
 }
 
@@ -140,6 +155,8 @@ func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*
 			&i.Article.Index,
 			&i.Article.Author,
 			&i.Article.Head,
+			&i.Article.Views,
+			&i.HasImg,
 			&i.User.ID,
 			&i.User.Nickname,
 			&i.User.Permissions,

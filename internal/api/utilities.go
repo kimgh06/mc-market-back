@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"maple/internal/perrors"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func GetUUIDFromParams(ctx *gin.Context, key string) uuid.UUID {
@@ -30,10 +31,10 @@ func GetUint64FromParam(ctx *gin.Context, key string) (uint64, error) {
 	return value, nil
 }
 
-func QueryIntDefault(ctx *gin.Context, key string, def int) int {
+func QueryIntDefault(ctx *gin.Context, key string, defaultNumber int) int {
 	value, err := strconv.Atoi(ctx.Query(key))
 	if err != nil {
-		return def
+		return defaultNumber
 	}
 
 	return value

@@ -1,7 +1,6 @@
 package articles
 
 import (
-	"github.com/gin-gonic/gin"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -9,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type listArticlesElement struct {
@@ -17,6 +18,8 @@ type listArticlesElement struct {
 	Author    ArticleAuthor `json:"author"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at"`
+	Views 		int64         `json:"views"`
+	HasImg 	bool          `json:"has_img"`
 }
 
 func listArticles(ctx *gin.Context) {
@@ -35,9 +38,9 @@ func listArticles(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidQuery.MakeJSON(err.Error()))
 		return
 	}
-
+	
 	size = utilities.Clamp(size, 0, 20)
-
+	
 	rows, err := a.Queries.ListArticles(ctx, schema.ListArticlesParams{
 		Offset: int32(offset),
 		Limit:  int32(size),
@@ -58,7 +61,7 @@ func listArticles(ctx *gin.Context) {
 	}
 
 	articles := make([]listArticlesElement, len(rows))
-
+	
 	for i, row := range rows {
 		articles[i] = listArticlesElement{
 			ID:    strconv.FormatUint(uint64(row.Article.ID), 10),
@@ -70,6 +73,8 @@ func listArticles(ctx *gin.Context) {
 			},
 			CreatedAt: row.Article.CreatedAt,
 			UpdatedAt: row.Article.UpdatedAt,
+			Views:     row.Article.Views,
+			HasImg:    row.HasImg,
 		}
 	}
 

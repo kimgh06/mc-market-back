@@ -20,6 +20,17 @@ type Article struct {
 	Index     sql.NullInt32  `json:"index"`
 	Author    int64          `json:"author"`
 	Head      sql.NullString `json:"head"`
+	Views 	  int64          `json:"views"`
+}
+
+type Comment struct {
+	ID        int64          `json:"id"`
+	ArticleID int64          `json:"article_id"`
+	UserID    int64          `json:"user_id"`
+	ReplyTo   sql.NullInt64  `json:"reply_to"`
+	Content   string         `json:"content"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 type Download struct {

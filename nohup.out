@@ -1,0 +1,72 @@
+ Service maple-core  Building
+#0 building with "default" instance using docker driver
+
+#1 [maple-core internal] load build definition from Dockerfile
+#1 transferring dockerfile: 263B done
+#1 DONE 0.0s
+
+#2 [maple-core internal] load metadata for docker.io/library/golang:alpine
+#2 ...
+
+#3 [maple-core internal] load metadata for docker.io/library/alpine:latest
+#3 DONE 0.7s
+
+#2 [maple-core internal] load metadata for docker.io/library/golang:alpine
+#2 DONE 0.7s
+
+#4 [maple-core internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [maple-core builder 1/7] FROM docker.io/library/golang:alpine@sha256:6c5c9590f169f77c8046e45c611d3b28fe477789acd8d3762d23d4744de69812
+#5 DONE 0.0s
+
+#6 [maple-core runtime 1/3] FROM docker.io/library/alpine:latest@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45
+#6 DONE 0.0s
+
+#7 [maple-core internal] load build context
+#7 transferring context: 19.20kB 0.2s done
+#7 DONE 0.3s
+
+#8 [maple-core builder 2/7] WORKDIR /build
+#8 CACHED
+
+#9 [maple-core builder 3/7] COPY ./ ./
+#9 DONE 0.8s
+
+#10 [maple-core builder 4/7] RUN go mod download
+#10 DONE 10.7s
+
+#11 [maple-core builder 5/7] RUN go build -o maple .
+#11 DONE 73.4s
+
+#12 [maple-core builder 6/7] WORKDIR /dist
+#12 DONE 0.1s
+
+#13 [maple-core builder 7/7] RUN cp /build/maple .
+#13 DONE 0.7s
+
+#6 [maple-core runtime 1/3] FROM docker.io/library/alpine:latest@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45
+#6 CACHED
+
+#14 [maple-core runtime 2/3] COPY --from=builder /dist/maple .
+#14 DONE 0.1s
+
+#15 [maple-core runtime 3/3] COPY schema ./schema
+#15 DONE 0.1s
+
+#16 [maple-core] exporting to image
+#16 exporting layers
+#16 exporting layers 0.2s done
+#16 writing image sha256:6b28cea8e299fff1b2141ba6db4c50227bf45934aa7ee390581d562491016bcc
+#16 writing image sha256:6b28cea8e299fff1b2141ba6db4c50227bf45934aa7ee390581d562491016bcc done
+#16 naming to docker.io/library/market-api-maple-core 0.0s done
+#16 DONE 0.3s
+
+#17 [maple-core] resolving provenance for metadata file
+ Service maple-core  Built
+#17 DONE 0.0s
+ Container maple-core  Recreate
+ Container maple-core  Recreated
+ Container maple-core  Starting
+ Container maple-core  Started
