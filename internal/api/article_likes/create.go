@@ -14,7 +14,7 @@ import (
 )
 
 type CreateArticleLike struct {
-	Like bool `json:"like" binding:"required"`
+	Like *bool `json:"like" binding:"required"` // 'required'는 필드가 존재하고 값이 있어야 유효
 }
 
 func createArticleLike(ctx *gin.Context) {
@@ -22,8 +22,13 @@ func createArticleLike(ctx *gin.Context) {
 	user := middlewares.GetUser(ctx)
 
 	var body CreateArticleLike
-	if err := ctx.ShouldBind(&body); err != nil {
+	if err := ctx.ShouldBindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
+		return
+	}
+
+	if body.Like == nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidParameter.MakeJSON("like is required"))
 		return
 	}
 
@@ -46,13 +51,22 @@ func createArticleLike(ctx *gin.Context) {
 			return
 		}
 	}
-	
+
+	// Create a new row
 	if err = a.Queries.CreateArticleLike(ctx, schema.CreateArticleLikeParams{
 		ArticleID: uint64(articleID),
 		UserID:    uint64(user.ID),
-		Kind: 		body.Like,
+		Kind:      *body.Like,
 	}); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+		// Update the existing row
+		if err = a.Queries.UpdateArticleLike(ctx, schema.UpdateArticleLikeParams{
+			ArticleID: uint64(articleID),
+			UserID:    uint64(user.ID),
+			Kind:      *body.Like,
+		}); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+			return
+		}
 		return
 	}
 

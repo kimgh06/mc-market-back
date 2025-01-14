@@ -70,7 +70,9 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 }
 
 const getArticle = `-- name: GetArticle :one
-select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash,
+	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = true) as likes,
+	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = false) as disLikes
 from articles
          left join public.users u on u.id = articles.author
 where articles.id = $1
@@ -85,6 +87,8 @@ where id = $1
 type GetArticleRow struct {
 	Article Article `json:"article"`
 	User    User    `json:"user"`
+	Likes 	int64 	`json:"likes"`
+	DisLikes int64 `json:"disLikes"`
 }
 
 func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, error) {
@@ -110,6 +114,8 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 		&i.User.CreatedAt,
 		&i.User.UpdatedAt,
 		&i.User.Cash,
+		&i.Likes,
+		&i.DisLikes,
 	)
 	if err != nil {
 		return nil, err
@@ -119,7 +125,8 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 
 const listArticles = `-- name: ListArticles :many
 select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, articles.head, articles.views, CASE WHEN articles.content LIKE '%<img src%' THEN TRUE ELSE FALSE END AS has_img, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash, 
-	(select count(*) from comments where comments.article_id = articles.id) as comment_count
+	(select count(*) from comments where comments.article_id = articles.id) as comment_count,
+	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = true) as likes
 from articles
 		left join public.users u on u.id = articles.author
 where index > $2::int
@@ -137,6 +144,7 @@ type ListArticlesRow struct {
 	Article Article `json:"article"`
 	HasImg bool    `json:"has_img"`
 	User    User    `json:"user"`
+	Likes  int64   `json:"likes"`
 	CommentCount int64 `json:"comment_count"`
 }
 
@@ -167,6 +175,7 @@ func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*
 			&i.User.UpdatedAt,
 			&i.User.Cash,
 			&i.CommentCount,
+			&i.Likes,
 		); err != nil {
 			return nil, err
 		}

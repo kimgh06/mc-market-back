@@ -124,7 +124,6 @@ func listComments(ctx *gin.Context, articleID uint64) getCommentsResponse {
 	}
 }
 
-
 type getArticleResponse struct {
 	ID        string        `json:"id"`
 	Title     string        `json:"title"`
@@ -135,6 +134,8 @@ type getArticleResponse struct {
 	UpdatedAt time.Time     `json:"updated_at"`
 	Views		  int64         `json:"views"`
 	Comments	getCommentsResponse `json:"comments"`
+	Likes int64 `json:"likes"`
+	Dislikes int64 `json:"dislikes"`
 }
 
 func getArticle(ctx *gin.Context) {
@@ -178,5 +179,7 @@ func getArticle(ctx *gin.Context) {
 		UpdatedAt: article.Article.UpdatedAt,
 		Views:    article.Article.Views,
 		Comments: comments,
+		Likes: article.Likes,
+		Dislikes: article.DisLikes,
 	})
 }
