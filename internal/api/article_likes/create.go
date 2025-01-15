@@ -53,9 +53,10 @@ func createArticleLike(ctx *gin.Context) {
 	}
 
 	// find the existing row
-	_, err = a.Queries.GetArticleLikeById(ctx, schema.GetArticleLikeParams{ArticleID: uint64(articleID), UserID: uint64(user.ID)})
-	// not exist
-	if errors.Is(err, sql.ErrNoRows) {
+	kind, err := a.Queries.GetArticleLikeById(ctx, schema.GetArticleLikeParams{ArticleID: uint64(articleID), UserID: uint64(user.ID)})
+
+	// if the row does not exist or the row exists but the kind is different
+	if errors.Is(err, sql.ErrNoRows) || kind != *body.Like {
 		// Create a new row
 		if err = a.Queries.CreateArticleLike(ctx, schema.CreateArticleLikeParams{
 			ArticleID: uint64(articleID),
