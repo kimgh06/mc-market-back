@@ -14,6 +14,5 @@ func InitializeRoutes(a *api.MapleAPI) {
 		a.Use(middlewares.RequireAuthentication(a))
 
 		a.POST("/", createArticleLike)
-		a.DELETE("/", deleteArticleLike)
 	})
 }

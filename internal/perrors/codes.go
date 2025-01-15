@@ -38,4 +38,6 @@ const (
 	ArticleLikeExists Code = "article_like_exists"
 
 	UnknownInternalError Code = "unknown_internal_error"
+
+	DuplicateEntry Code = "duplicate_entry"
 )

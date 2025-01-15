@@ -52,22 +52,31 @@ func createArticleLike(ctx *gin.Context) {
 		}
 	}
 
-	// Create a new row
-	if err = a.Queries.CreateArticleLike(ctx, schema.CreateArticleLikeParams{
-		ArticleID: uint64(articleID),
-		UserID:    uint64(user.ID),
-		Kind:      *body.Like,
-	}); err != nil {
-		// Update the existing row
-		if err = a.Queries.UpdateArticleLike(ctx, schema.UpdateArticleLikeParams{
+	// find the existing row
+	_, err = a.Queries.GetArticleLikeById(ctx, schema.GetArticleLikeParams{ArticleID: uint64(articleID), UserID: uint64(user.ID)})
+	// not exist
+	if errors.Is(err, sql.ErrNoRows) {
+		// Create a new row
+		if err = a.Queries.CreateArticleLike(ctx, schema.CreateArticleLikeParams{
 			ArticleID: uint64(articleID),
 			UserID:    uint64(user.ID),
 			Kind:      *body.Like,
 		}); err != nil {
+			// Update the existing row
+			if err = a.Queries.UpdateArticleLike(ctx, schema.UpdateArticleLikeParams{
+				ArticleID: uint64(articleID),
+				UserID:    uint64(user.ID),
+				Kind:      *body.Like,
+			}); err != nil {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+				return
+			}
+		}
+	} else{
+		if err = a.Queries.DeleteArticleLike(ctx, schema.DeleteArticleLikeParams{ArticleID: uint64(articleID), UserID: uint64(user.ID)}); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 			return
 		}
-		return
 	}
 
 	ctx.Status(http.StatusOK)
