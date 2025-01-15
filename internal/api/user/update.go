@@ -36,8 +36,8 @@ func updateUser(ctx *gin.Context) {
 	if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
 		if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
+			return
 		}
-		return
 	}
 
 	validate := validator.New()

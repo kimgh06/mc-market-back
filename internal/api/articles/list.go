@@ -22,6 +22,7 @@ type listArticlesElement struct {
 	HasImg 	bool          `json:"has_img"`
 	CommentCount int64      `json:"comment_count"`
 	Likes int64 `json:"likes"`
+	Head 		*string       `json:"head"`
 }
 
 func listArticles(ctx *gin.Context) {
@@ -79,6 +80,7 @@ func listArticles(ctx *gin.Context) {
 			HasImg:    row.HasImg,
 			CommentCount: row.CommentCount,
 			Likes: row.Likes,
+			Head: &row.Article.Head.String,
 		}
 	}
 

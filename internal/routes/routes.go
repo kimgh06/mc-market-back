@@ -2,6 +2,7 @@ package routes
 
 import (
 	"maple/internal/api"
+	"maple/internal/api/article_head"
 	"maple/internal/api/article_likes"
 	"maple/internal/api/articles"
 	"maple/internal/api/comment"
@@ -19,6 +20,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 		articles.InitializeRoutes(a)
 		comment.InitializeRoutes(a)
 		article_likes.InitializeRoutes(a)
+		article_head.InitializeRoutes(a)
 	})
 
 	a.GET("/status/", status.Check)
