@@ -1,6 +1,7 @@
 package articles
 
 import (
+	"fmt"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -43,11 +44,32 @@ func listArticles(ctx *gin.Context) {
 	}
 	
 	size = utilities.Clamp(size, 0, 20)
+
+	var rows []*schema.ListArticlesRow
+
+	headId := ctx.Query("head_id")
+
+	fmt.Println("headId: ", headId)
+
+	if headId == "0" {
+		rows, err = a.Queries.ListArticles(ctx, schema.ListArticlesParams{
+			Offset: int32(offset),
+			Limit:  int32(size),
+		})
+	}else{ 
+		headIDInt, err := strconv.Atoi(headId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidQuery.MakeJSON(err.Error()))
+			return
+		}
+		rows, err = a.Queries.ListArticlesByHead(ctx, schema.ListArticlesByHeadParams{
+			Head:   strconv.Itoa(headIDInt),
+			Offset: int32(offset),
+			Limit:  int32(size),
+		})
+	}
 	
-	rows, err := a.Queries.ListArticles(ctx, schema.ListArticlesParams{
-		Offset: int32(offset),
-		Limit:  int32(size),
-	})
+
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.WithJSON(err.Error()))
 		return

@@ -6,13 +6,13 @@ import (
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UpdateArticleHead struct {
-	Id 	int `json:"id"`
-	Name  string `json:"name"`
+	Name string `json:"name"`
 }
 
 func updateHead(ctx *gin.Context) {
@@ -23,16 +23,23 @@ func updateHead(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON("You don't have permission to create article head"))
 		return
 	}
-	
+
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidParameter.MakeJSON("Invalid id parameter"))
+		return
+	}
+
 	body := UpdateArticleHead{}
 	if err := ctx.ShouldBind(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
 		return
 	}
 
-	err := a.Queries.UpdateArticleHead(ctx, schema.ArticleHead{
-		ID:   body.Id,
-		Name:  body.Name,
+	err = a.Queries.UpdateArticleHead(ctx, schema.ArticleHead{
+		ID:   id,
+		Name: body.Name,
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))

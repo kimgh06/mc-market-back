@@ -193,3 +193,65 @@ func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*
 	}
 	return items, nil
 }
+
+
+const listArticlesByHead = `-- name: ListArticlesByHead :many
+select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author,
+	(SELECT name FROM article_head_type WHERE article_head_type.id = articles.head::integer) AS head,
+	articles.views, CASE WHEN articles.content LIKE '%<img src%' THEN TRUE ELSE FALSE END AS has_img, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash,
+	(select count(*) from comments where comments.article_id = articles.id) as comment_count,
+	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = true) as likes
+from articles
+		left join public.users u on u.id = articles.author
+where articles.head = $2::text and index > $3::int
+order by articles.created_at desc
+limit $1
+`
+
+type ListArticlesByHeadParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+	Head   string `json:"head"`
+}
+
+func (q *Queries) ListArticlesByHead(ctx context.Context, arg ListArticlesByHeadParams) ([]*ListArticlesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listArticlesByHead, arg.Limit, arg.Head, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*ListArticlesRow
+	for rows.Next() {
+		var i ListArticlesRow
+		if err := rows.Scan(
+			&i.Article.ID,
+			&i.Article.Title,
+			&i.Article.Content,
+			&i.Article.CreatedAt,
+			&i.Article.UpdatedAt,
+			&i.Article.Index,
+			&i.Article.Author,
+			&i.Article.Head,
+			&i.Article.Views,
+			&i.HasImg,
+			&i.User.ID,
+			&i.User.Nickname,
+			&i.User.Permissions,
+			&i.User.CreatedAt,
+			&i.User.UpdatedAt,
+			&i.User.Cash,
+			&i.CommentCount,
+			&i.Likes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

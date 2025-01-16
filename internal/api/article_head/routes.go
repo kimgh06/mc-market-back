@@ -18,8 +18,8 @@ func InitializeRoutes(a *api.MapleAPI) {
 		// add
 		a.POST("/", createHead)
 		// delete
-		a.POST("/delete/", deleteHead)
+		a.POST("/delete/:id/", deleteHead)
 		// update
-		a.POST("/update/", updateHead)
+		a.POST("/update/:id/", updateHead)
 	})
 }
