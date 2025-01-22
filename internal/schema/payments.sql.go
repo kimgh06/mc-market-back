@@ -118,3 +118,42 @@ func (q *Queries) GetPaymentByOrderId(ctx context.Context, orderID uuid.UUID) (*
 	)
 	return &i, err
 }
+
+type PaymentListItem struct {
+	Payment
+	AgentName string `json:"agent_name"`
+}
+
+const listPaymentsOrderByCreated = `-- name: ListPaymentsOrderByCreated :many
+select id, agent,
+(select u.nickname from users u where u.id = agent) as agent_name,
+order_id, amount, approved, created_at, failed
+from payments
+order by created_at desc
+`
+
+func (q *Queries) ListPaymentsOrderByCreated(ctx context.Context) ([]PaymentListItem, error) {
+	rows, err := q.db.QueryContext(ctx, listPaymentsOrderByCreated)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PaymentListItem
+	for rows.Next() {
+		var i PaymentListItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.Agent,
+			&i.AgentName,
+			&i.OrderID,
+			&i.Amount,
+			&i.Approved,
+			&i.CreatedAt,
+			&i.Failed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	return items, nil
+}

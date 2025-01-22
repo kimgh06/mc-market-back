@@ -3,14 +3,15 @@ package articles
 import (
 	"bytes"
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	"github.com/godruoyi/go-snowflake"
 	"html/template"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/godruoyi/go-snowflake"
 )
 
 type CreateArticle struct {
@@ -28,6 +29,13 @@ func createArticle(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
 		return
 	}
+
+	if body.Head == "공지"{
+		if user.Permissions != 2147483647 {
+			ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON("You don't have permission to create article head"))
+			return
+		}
+	} 
 
 	tmpl, err := template.New("article.content").Parse(body.Content)
 	if err != nil {
