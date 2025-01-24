@@ -1,14 +1,15 @@
 package payments
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/godruoyi/go-snowflake"
-	"github.com/google/uuid"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/godruoyi/go-snowflake"
+	"github.com/google/uuid"
 )
 
 type CreatePayment struct {

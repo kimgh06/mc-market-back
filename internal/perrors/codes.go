@@ -31,6 +31,11 @@ const (
 	DuplicatePurchase Code = "duplicate_purchase"
 	PurchaseNotFound
 	PaymentNotFound Code = "payment_not_found"
+	FailedToMarshal Code = "failed_to_marshal"
+	FailedToCreateRequest Code = "failed_to_create_request"
+	FailedToSendRequest Code = "failed_to_send_request"
+	PaymentFailed Code = "payment_failed"
+	MissingEnvironmentVariable Code = "missing_environment_variable"
 
 	ArticleNotFound Code = "article_not_found"
 	CommentNotFound Code = "comment_not_found"
