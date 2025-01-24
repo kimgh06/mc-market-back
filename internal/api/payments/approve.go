@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"maple/internal/api"
 	"maple/internal/middlewares"
@@ -46,6 +47,7 @@ func approvePayment(ctx *gin.Context) {
 		return
 	}
 	encrypted := "Basic " + base64.StdEncoding.EncodeToString([]byte(paymentSecret+":"))
+	fmt.Println(encrypted)
 
 	// request to payment service
 	url := "https://api.tosspayments.com/v1/payments/confirm"
