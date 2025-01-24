@@ -7,6 +7,7 @@ package schema
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -121,7 +122,7 @@ func (q *Queries) GetPaymentByOrderId(ctx context.Context, orderID uuid.UUID) (*
 
 type PaymentListItem struct {
 	Payment
-	AgentName string `json:"agent_name"`
+	AgentName sql.NullString `json:"agent_name"`
 }
 
 const listPaymentsOrderByCreated = `-- name: ListPaymentsOrderByCreated :many
@@ -153,6 +154,7 @@ func (q *Queries) ListPaymentsOrderByCreated(ctx context.Context) ([]PaymentList
 		); err != nil {
 			return nil, err
 		}
+		i.AgentName.String = i.AgentName.String // Ensure the string is set correctly
 		items = append(items, i)
 	}
 	return items, nil
