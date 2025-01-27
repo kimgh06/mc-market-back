@@ -17,5 +17,6 @@ func InitializeRoutes(a *api.MapleAPI) {
 
 		a.POST("/", createArticle)
 		a.DELETE("/:id/", deleteArticle)
+		a.POST("/:id/", updateArticle)
 	})
 }

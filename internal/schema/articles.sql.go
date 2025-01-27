@@ -58,6 +58,24 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*
 	return &i, err
 }
 
+const updateArticle = `-- name: UpdateArticle :exec
+update articles
+set title = $2, content = $3, head = $4
+where id = $1
+`
+
+type UpdateArticleParams struct {
+	ID      int64          `json:"id"`
+	Title   string         `json:"title"`
+	Content string         `json:"content"`
+	Head    sql.NullString `json:"head"`
+}
+
+func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) error {
+	_, err := q.db.ExecContext(ctx, updateArticle, arg.ID, arg.Title, arg.Content, arg.Head)
+	return err
+}
+
 const deleteArticle = `-- name: DeleteArticle :exec
 delete
 from articles
