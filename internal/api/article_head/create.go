@@ -14,6 +14,7 @@ import (
 
 type CreateArticleHead struct {
 	Name  string `json:"name"`
+	IsAdmin bool `json:"is_admin"`
 }
 
 func createHead(ctx *gin.Context) {
@@ -36,6 +37,7 @@ func createHead(ctx *gin.Context) {
 	
 	err := a.Queries.CreateArticleHead(ctx, schema.ArticleHead{
 		ID:   headID,
+		IsAdmin: body.IsAdmin,
 		Name:  body.Name,
 	})
 	if err != nil {

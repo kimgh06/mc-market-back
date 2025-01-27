@@ -10,6 +10,7 @@ import (
 
 type getArticleHeadListResponse struct {
 	ID   int64  `json:"id"`
+	IsAdmin bool `json:"is_admin"`
 	Name string `json:"name"`
 }
 
@@ -26,6 +27,7 @@ func getHeadList(ctx *gin.Context) {
 	for _, head := range heads {
 		response = append(response, getArticleHeadListResponse{
 			ID:   int64(head.ID),
+			IsAdmin: head.IsAdmin,
 			Name: head.Name,
 		})
 	}

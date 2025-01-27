@@ -13,6 +13,7 @@ import (
 
 type UpdateArticleHead struct {
 	Name string `json:"name"`
+	IsAdmin bool `json:""`
 }
 
 func updateHead(ctx *gin.Context) {
@@ -39,6 +40,7 @@ func updateHead(ctx *gin.Context) {
 
 	err = a.Queries.UpdateArticleHead(ctx, schema.ArticleHead{
 		ID:   id,
+		IsAdmin: body.IsAdmin,
 		Name: body.Name,
 	})
 	if err != nil {
