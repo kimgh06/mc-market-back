@@ -22,10 +22,15 @@ type UpdateArticle struct {
 func updateArticle(ctx *gin.Context) {
 	a := api.Get(ctx)
 	user := middlewares.GetUser(ctx)
-
+	
 	id, err := api.GetUint64FromParam(ctx, "id")
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidSnowflake.MakeJSON(err.Error()))	
+		return
+	}
+
+	if user.ID != a.Queries.GetArticleAuthor(ctx, int64(id)) && user.Permissions != 2147483647 {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON("You don't have permission to update this article"))
 		return
 	}
 
