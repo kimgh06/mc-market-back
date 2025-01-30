@@ -68,14 +68,15 @@ func updateProduct(ctx *gin.Context) {
 	}
 
 	updated, err := a.Queries.UpdateProduct(ctx, schema.UpdateProductParams{
-		ID:          int64(id),
-		Details:     sql.NullString{String: buffer.String(), Valid: true},
-		Creator:     nullable.UPointerToInt64(body.Creator),
-		Name:        nullable.PointerToString(body.Name),
-		Description: nullable.PointerToString(body.Description),
-		Usage:       nullable.PointerToString(body.Usage),
-		Category:    nullable.PointerToString(body.Category),
-		Price:       nullable.PointerToInt32(body.Price),
+		ID:            int64(id),
+		Details:       sql.NullString{String: buffer.String(), Valid: true},
+		Creator:       nullable.UPointerToInt64(body.Creator),
+		Name:          nullable.PointerToString(body.Name),
+		Description:   nullable.PointerToString(body.Description),
+		Usage:         nullable.PointerToString(body.Usage),
+		Category:      nullable.PointerToString(body.Category),
+		Price:         nullable.PointerToInt32(body.Price),
+		PriceDiscount: nullable.PointerToInt32(body.PriceDiscount),
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
