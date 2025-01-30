@@ -27,7 +27,7 @@ RUN make install
 WORKDIR /
 
 # Download and install textsearch_ko PostgreSQL extension
-RUN git clone https://github.com/i0seph/textsearch_ko
+RUN git clone --branch stable https://github.com/kappa8719/textsearch_ko
 WORKDIR textsearch_ko
 RUN make
 RUN make install
@@ -37,4 +37,3 @@ RUN make install
 #RUN chmod 755 /docker-entrypoint-initdb.d/postgresql_initializer.sh
 RUN cp ./ts_mecab_ko.sql /docker-entrypoint-initdb.d
 WORKDIR /
-
