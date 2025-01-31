@@ -36,6 +36,7 @@ const (
 	FailedToSendRequest Code = "failed_to_send_request"
 	PaymentFailed Code = "payment_failed"
 	MissingEnvironmentVariable Code = "missing_environment_variable"
+	BannerNotFound Code = "banner_not_found"
 
 	ArticleNotFound Code = "article_not_found"
 	CommentNotFound Code = "comment_not_found"

@@ -5,6 +5,7 @@ import (
 	"maple/internal/api/article_head"
 	"maple/internal/api/article_likes"
 	"maple/internal/api/articles"
+	"maple/internal/api/banner"
 	"maple/internal/api/comment"
 	"maple/internal/api/payments"
 	"maple/internal/api/products"
@@ -21,6 +22,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 		comment.InitializeRoutes(a)
 		article_likes.InitializeRoutes(a)
 		article_head.InitializeRoutes(a)
+		banner.InitializeRoutes(a)
 	})
 
 	a.GET("/status/", status.Check)

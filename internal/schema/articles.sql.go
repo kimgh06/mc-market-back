@@ -323,3 +323,15 @@ func (q *Queries) ListArticlesByHead(ctx context.Context, arg ListArticlesByHead
 	}
 	return items, nil
 }
+
+const getArticleAuthor = `-- name: GetArticleAuthor :one
+select author
+from articles
+where id = $1
+`
+
+func (q *Queries) GetArticleAuthor(ctx context.Context, id int64) int64 {
+	var author int64
+	q.db.QueryRowContext(ctx, getArticleAuthor, id).Scan(&author)
+	return author
+}
