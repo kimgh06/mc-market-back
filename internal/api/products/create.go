@@ -9,6 +9,7 @@ import (
 	"maple/internal/api"
 	"maple/internal/api/responses"
 	"maple/internal/middlewares"
+	"maple/internal/nullable"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"maple/pkg/permissions"
@@ -59,15 +60,16 @@ func createProduct(ctx *gin.Context) {
 	sanitizedDetails := buffer.String()
 
 	product, err := a.Queries.CreateProduct(ctx, schema.CreateProductParams{
-		ID:          int64(snowflake.ID()),
-		Creator:     int64(body.Creator),
-		Name:        body.Name,
-		Description: body.Description,
-		Usage:       body.Usage,
-		Details:     sanitizedDetails,
-		Category:    body.Category,
-		Price:       body.Price,
-		Tags:        body.Tags,
+		ID:            int64(snowflake.ID()),
+		Creator:       int64(body.Creator),
+		Name:          body.Name,
+		Description:   body.Description,
+		Usage:         body.Usage,
+		Details:       sanitizedDetails,
+		Category:      body.Category,
+		Price:         body.Price,
+		PriceDiscount: nullable.PointerToInt32(body.PriceDiscount),
+		Tags:          body.Tags,
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
