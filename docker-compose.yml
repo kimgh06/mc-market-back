@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: maple
     volumes:
-      - maple-postgres-data:/var/lib/postgres
+      - maple-postgres-data:/var/lib/postgresql/data
     networks:
       market-internal:
   maple-core:
@@ -19,6 +19,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - maple-core-data:/storage
     command:
       - ./maple
     env_file:
@@ -27,7 +29,10 @@ services:
       - market-internal
 
 volumes:
+  maple-core-data:
+    external: true
   maple-postgres-data:
+    external: true
 
 networks:
   market-internal:

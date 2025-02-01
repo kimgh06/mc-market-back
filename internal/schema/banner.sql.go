@@ -113,7 +113,7 @@ func (q *Queries) DeleteBanner(ctx context.Context, id int64) error {
 const listBanners = `-- name: ListBanners :many
 select id, title, image_url, link_url, created_at, index_num
 from banner
-order by created_at desc
+order by index_num
 `
 
 func (q *Queries) ListBanners(ctx context.Context) ([]Banner, error) {
