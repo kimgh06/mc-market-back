@@ -136,6 +136,8 @@ type getArticleResponse struct {
 	Comments	getCommentsResponse `json:"comments"`
 	Likes int64 `json:"likes"`
 	Dislikes int64 `json:"dislikes"`
+	CommentDisabled bool `json:"comment_disabled"`
+	LikeDisabled    bool `json:"like_disabled"`
 }
 
 func getArticle(ctx *gin.Context) {
@@ -181,5 +183,7 @@ func getArticle(ctx *gin.Context) {
 		Comments: comments,
 		Likes: article.Likes,
 		Dislikes: article.DisLikes,
+		CommentDisabled: article.CommentDisabled,
+		LikeDisabled: article.LikeDisabled,
 	})
 }

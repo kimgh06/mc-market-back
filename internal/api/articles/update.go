@@ -3,6 +3,7 @@ package articles
 import (
 	"bytes"
 	"database/sql"
+	"fmt"
 	"html/template"
 	"maple/internal/api"
 	"maple/internal/middlewares"
@@ -17,6 +18,8 @@ type UpdateArticle struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	Head    string `json:"head"`
+	CommentDisabled bool `json:"comment_disabled"`
+	LikeDisabled    bool `json:"like_disabled"`
 }
 
 func updateArticle(ctx *gin.Context) {
@@ -59,11 +62,15 @@ func updateArticle(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println(body.CommentDisabled)
+
 	err = a.Queries.UpdateArticle(ctx, schema.UpdateArticleParams{
 		ID:      int64(id),
 		Title:   body.Title,
 		Content: buffer.String(),
 		Head:    sql.NullString{Valid: body.Head != "", String: body.Head},
+		CommentDisabled: body.CommentDisabled,
+		LikeDisabled: body.LikeDisabled,
 	})
 
 	if err != nil {

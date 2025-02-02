@@ -18,6 +18,8 @@ type CreateArticle struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	Head    string `json:"head"`
+	CommentDisabled bool `json:"comment_disabled"`
+	LikeDisabled    bool `json:"like_disabled"`
 }
 
 func createArticle(ctx *gin.Context) {
@@ -49,17 +51,19 @@ func createArticle(ctx *gin.Context) {
 		return
 	}
 
-	_, err = a.Queries.CreateArticle(ctx, schema.CreateArticleParams{
+	row, err := a.Queries.CreateArticle(ctx, schema.CreateArticleParams{
 		ID:      int64(snowflake.ID()),
 		Title:   body.Title,
 		Content: buffer.String(),
 		Author:  user.ID,
 		Head:    sql.NullString{Valid: body.Head != "", String: body.Head},
+		CommentDisabled: sql.NullBool{Valid: true, Bool: body.CommentDisabled},
+		LikeDisabled: sql.NullBool{Valid: true, Bool: body.LikeDisabled},
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return
 	}
 
-	ctx.Status(http.StatusCreated)
+	ctx.JSON(http.StatusOK, row)
 }
