@@ -1,7 +1,6 @@
 package articles
 
 import (
-	"fmt"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -48,8 +47,6 @@ func listArticles(ctx *gin.Context) {
 	var rows []*schema.ListArticlesRow
 
 	headId := ctx.Query("head_id")
-
-	fmt.Println("headId: ", headId)
 
 	if headId == "0" {
 		rows, err = a.Queries.ListArticles(ctx, schema.ListArticlesParams{

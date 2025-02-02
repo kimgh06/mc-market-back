@@ -23,9 +23,9 @@ func (q *Queries) CountArticles(ctx context.Context) (int64, error) {
 }
 
 const createArticle = `-- name: CreateArticle :one
-insert into articles (id, title, content, author, head)
-values ($1, $2, $3, $4, $5)
-returning id, title, content, created_at, updated_at, index, author, head
+insert into articles (id, title, content, author, head, comment_disabled, like_disabled)
+values ($1, $2, $3, $4, $5, $6, $7)
+returning id, title, content, created_at, updated_at, index, author, head, comment_disabled, like_disabled
 `
 
 type CreateArticleParams struct {
@@ -34,6 +34,8 @@ type CreateArticleParams struct {
 	Content string         `json:"content"`
 	Author  int64          `json:"author"`
 	Head    sql.NullString `json:"head"`
+	CommentDisabled sql.NullBool `json:"comment_disabled"`
+	LikeDisabled sql.NullBool `json:"like_disabled"`
 }
 
 func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*Article, error) {
@@ -43,6 +45,8 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*
 		arg.Content,
 		arg.Author,
 		arg.Head,
+		arg.CommentDisabled,
+		arg.LikeDisabled,
 	)
 	var i Article
 	err := row.Scan(
@@ -54,25 +58,28 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (*
 		&i.Index,
 		&i.Author,
 		&i.Head,
+		&i.CommentDisabled,
+		&i.LikeDisabled,
 	)
 	return &i, err
 }
-
 const updateArticle = `-- name: UpdateArticle :exec
 update articles
-set title = $2, content = $3, head = $4
+set title = $2, content = $3, head = $4, comment_disabled = $5, like_disabled = $6
 where id = $1
 `
 
 type UpdateArticleParams struct {
-	ID      int64          `json:"id"`
-	Title   string         `json:"title"`
-	Content string         `json:"content"`
-	Head    sql.NullString `json:"head"`
+	ID              int64          `json:"id"`
+	Title           string         `json:"title"`
+	Content         string         `json:"content"`
+	Head            sql.NullString `json:"head"`
+	CommentDisabled bool   `json:"comment_disabled"`
+	LikeDisabled    bool   `json:"like_disabled"`
 }
 
 func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) error {
-	_, err := q.db.ExecContext(ctx, updateArticle, arg.ID, arg.Title, arg.Content, arg.Head)
+	_, err := q.db.ExecContext(ctx, updateArticle, arg.ID, arg.Title, arg.Content, arg.Head, arg.CommentDisabled, arg.LikeDisabled)
 	return err
 }
 
@@ -90,11 +97,12 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 const getArticle = `-- name: GetArticle :one
 select articles.id, articles.title, articles.content, articles.created_at, articles.updated_at, articles.index, articles.author, 
 	(SELECT name FROM article_head_type WHERE article_head_type.id = articles.head::integer) AS head,
- 	articles.views, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash,
+	articles.views, u.id, u.nickname, u.permissions, u.created_at, u.updated_at, u.cash,
 	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = true) as likes,
-	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = false) as disLikes
+	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = false) as disLikes,
+	articles.comment_disabled, articles.like_disabled
 from articles
-         left join public.users u on u.id = articles.author
+		 left join public.users u on u.id = articles.author
 where articles.id = $1
 `
 
@@ -109,6 +117,8 @@ type GetArticleRow struct {
 	User    User    `json:"user"`
 	Likes 	int64 	`json:"likes"`
 	DisLikes int64 `json:"disLikes"`
+	CommentDisabled bool `json:"comment_disabled"`
+	LikeDisabled    bool `json:"like_disabled"`
 }
 
 func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, error) {
@@ -136,6 +146,8 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (*GetArticleRow, err
 		&i.User.Cash,
 		&i.Likes,
 		&i.DisLikes,
+		&i.CommentDisabled,
+		&i.LikeDisabled,
 	)
 	if err != nil {
 		return nil, err
