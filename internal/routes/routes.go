@@ -9,6 +9,7 @@ import (
 	"maple/internal/api/comment"
 	"maple/internal/api/payments"
 	"maple/internal/api/products"
+	"maple/internal/api/products_update_log"
 	"maple/internal/api/status"
 	"maple/internal/api/user"
 )
@@ -23,6 +24,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 		article_likes.InitializeRoutes(a)
 		article_head.InitializeRoutes(a)
 		banner.InitializeRoutes(a)
+		products_update_log.InitializeRoutes(a)
 	})
 
 	a.GET("/status/", status.Check)

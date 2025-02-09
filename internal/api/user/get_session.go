@@ -3,11 +3,13 @@ package user
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
 	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func getSessionUser(ctx *gin.Context) {
@@ -25,7 +27,7 @@ func getSessionUser(ctx *gin.Context) {
 	}
 
 	var res userSessionGetResponse
-	res.ID = uint64(user.ID)
+	res.ID = strconv.Itoa(int(user.ID))
 	if user.Nickname.Valid {
 		res.Nickname = &user.Nickname.String
 	}

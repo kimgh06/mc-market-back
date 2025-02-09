@@ -3,7 +3,6 @@ package articles
 import (
 	"bytes"
 	"database/sql"
-	"fmt"
 	"html/template"
 	"maple/internal/api"
 	"maple/internal/middlewares"
@@ -61,8 +60,6 @@ func updateArticle(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidHTML.MakeJSON(err.Error()))
 		return
 	}
-
-	fmt.Println(body.CommentDisabled)
 
 	err = a.Queries.UpdateArticle(ctx, schema.UpdateArticleParams{
 		ID:      int64(id),

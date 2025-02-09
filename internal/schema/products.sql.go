@@ -193,7 +193,8 @@ set creator        = coalesce($2, creator),
     category       = coalesce($7, category),
     tags           = coalesce($8, tags),
     price          = coalesce($9, price),
-    price_discount = coalesce($10, price_discount)
+    price_discount = coalesce($10, price_discount),
+		updated_at = now()
 where id = $1
 returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at, details, tags
 `

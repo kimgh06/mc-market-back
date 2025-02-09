@@ -1,7 +1,7 @@
 package user
 
 type userSessionGetResponse struct {
-	ID          uint64  `json:"id"`
+	ID          string  `json:"id"`
 	Nickname    *string `json:"nickname"`
 	Permissions int32   `json:"permissions"`
 	Cash        uint    `json:"cash"`

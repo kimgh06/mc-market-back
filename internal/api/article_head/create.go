@@ -1,7 +1,6 @@
 package article_head
 
 import (
-	"fmt"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
@@ -33,7 +32,6 @@ func createHead(ctx *gin.Context) {
 	}
 
 	headID := rand.IntN(100000)
-	fmt.Println("headID: ", headID, "name: ", body.Name)
 	
 	err := a.Queries.CreateArticleHead(ctx, schema.ArticleHead{
 		ID:   headID,

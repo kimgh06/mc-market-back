@@ -3,7 +3,6 @@ package comment
 import (
 	"bytes"
 	"database/sql"
-	"fmt"
 	"html/template"
 	"maple/internal/api"
 	"maple/internal/middlewares"
@@ -49,8 +48,6 @@ func createComment(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidParameter.MakeJSON("article_id must be an integer"))
 		return
 	}
-
-	fmt.Println(body.ReplyTo)
 
 	var buffer bytes.Buffer
 	if err = tmpl.Execute(&buffer, body); err != nil {
