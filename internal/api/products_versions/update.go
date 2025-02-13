@@ -1,21 +1,21 @@
-package products_update_log
+package products_versions
 
 import (
+	"fmt"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-type UpdateProductsUpdateLogBody struct {
-	ProductID string `json:"product_id" binding:"required"`
-	Title     string `json:"title" binding:"required,max=100"`
-	Content   string `json:"content" binding:"required"`
+type UpdateProductVersion struct {
+	VersionName string `json:"version_name" binding:"required"`
+	Link       string `json:"link" binding:"required"`
+	Index      int    `json:"index"`
 }
 
 func update(ctx *gin.Context) {
@@ -35,23 +35,22 @@ func update(ctx *gin.Context) {
 		return
 	}
 
-	body := UpdateProductsUpdateLogBody{}
-	if err = ctx.ShouldBind(&body); err != nil {
+	body := UpdateProductVersion{}
+	if err = ctx.ShouldBindBodyWithJSON(&body); err != nil {
 		// failed to bind body, abort
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidJSON.MakeJSON(err.Error()))
 		return
 	}
 
-	// Assume you have a corresponding query generated.
-	pid, err := strconv.Atoi(body.ProductID)
+	fmt.Println(body)
 
-	_, err = a.Queries.UpdateUpdateLog(ctx, schema.UpdateProductUpdateLogParams{
-		ID:        int32(id),
-		ProductID: int64(pid),
-		Title:     body.Title,
-		Content:   body.Content,
-		UpdatedAt: time.Now(),
-	})
+	// Assume you have a corresponding query generated.	
+	_, err = a.Queries.UpdateProductVersion(ctx, schema.UpdateProductVersionParams{
+		ID:         int32(id),
+		VersionName: body.VersionName,
+		Link:       body.Link,
+		Index:      body.Index,
+	})	
 	
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
