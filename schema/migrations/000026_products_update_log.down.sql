@@ -1,0 +1,1 @@
+drop table products_update_log;

@@ -31,8 +31,6 @@ func updateUser(ctx *gin.Context) {
 		return
 	}
 
-	println(user.ID, id, body.Permissions, body.Cash)
-
 	if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
 		if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
@@ -46,12 +44,14 @@ func updateUser(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := a.Queries.UpdateUser(ctx, schema.UpdateUserParams{
+	paramBody := schema.UpdateUserParams{
 		ID:          int64(id),
 		Nickname:    nullable.PointerToString(body.Nickname),
 		Permissions: nullable.PointerToInt32(body.Permissions),
 		Cash:        nullable.PointerToInt32(body.Cash),
-	})
+	}
+
+	updated, err := a.Queries.UpdateUser(ctx, paramBody)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return
