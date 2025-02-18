@@ -2,7 +2,7 @@ maple
 
 # Development PostgreSQL
 .postgres
-# .env
+.env
 .env.docker
 
 # Editor
