@@ -25,6 +25,8 @@ services:
       - ./maple
     env_file:
       - .env
+    ports:
+      - "6568:6568"
     networks:
       - market-internal
 
