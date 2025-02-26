@@ -61,6 +61,7 @@ func createUser(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Printf("body %+v\n", body)
 	fmt.Printf("createUserResponse: %+v\n", createUserResponse)
 
 	snowflakeId := snowflake.ParseID(createUserResponse.ID)
@@ -129,7 +130,6 @@ func unmarshalledBody(result *http.Response) (*SurgeUserResponse, error) {
 	unmarshalled := new(SurgeUserResponse)
 
 	if err := json.NewDecoder(result.Body).Decode(unmarshalled); err != nil {
-		fmt.Errorf("Failed to unmarshal response body: %v", err)
 		return nil, err
 	}
 
