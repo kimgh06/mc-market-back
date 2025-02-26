@@ -129,6 +129,7 @@ func unmarshalledBody(result *http.Response) (*SurgeUserResponse, error) {
 	unmarshalled := new(SurgeUserResponse)
 
 	if err := json.NewDecoder(result.Body).Decode(unmarshalled); err != nil {
+		fmt.Errorf("Failed to unmarshal response body: %v", err)
 		return nil, err
 	}
 
