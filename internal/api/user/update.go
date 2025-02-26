@@ -7,7 +7,6 @@ import (
 	"maple/internal/nullable"
 	"maple/internal/perrors"
 	"maple/internal/schema"
-	"maple/pkg/permissions"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,12 +30,12 @@ func updateUser(ctx *gin.Context) {
 		return
 	}
 
-	if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
-		if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
-			return
-		}
-	}
+	// if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
+	// 	if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {
+	// 		ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
+	// 		return
+	// 	}
+	// }
 
 	validate := validator.New()
 	if err := validate.Struct(body); err != nil {
