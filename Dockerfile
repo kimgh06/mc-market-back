@@ -2,7 +2,7 @@ FROM golang:alpine AS builder
 
 WORKDIR /build
 
-COPY . .
+COPY ./ ./
 
 RUN go mod download
 RUN go build -o maple .
