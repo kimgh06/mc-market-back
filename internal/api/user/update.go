@@ -3,9 +3,11 @@ package user
 import (
 	"maple/internal/api"
 	"maple/internal/api/responses"
+	"maple/internal/middlewares"
 	"maple/internal/nullable"
 	"maple/internal/perrors"
 	"maple/internal/schema"
+	"maple/pkg/permissions"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +16,7 @@ import (
 
 func updateUser(ctx *gin.Context) {
 	a := api.Get(ctx)
-	// user := middlewares.GetUser(ctx)
+	user := middlewares.GetUser(ctx)
 
 	id, err := api.GetUint64FromParam(ctx, "id")
 	if err != nil {
@@ -29,12 +31,12 @@ func updateUser(ctx *gin.Context) {
 		return
 	}
 
-	// if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
-	// 	if uint64(user.ID) != id || body.Permissions != nil || body.Cash != nil {
-	// 		ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
-	// 		return
-	// 	}
-	// }
+	if !permissions.CheckUserPermissionCtx(ctx, user, permissions.ManageUsers) {
+		if uint64(user.ID) != id || body.Cash != nil {
+			ctx.AbortWithStatusJSON(http.StatusForbidden, perrors.InsufficientUserPermission.MakeJSON())
+			return
+		}
+	}
 
 	validate := validator.New()
 	if err := validate.Struct(body); err != nil {
