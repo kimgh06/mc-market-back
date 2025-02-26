@@ -10,10 +10,11 @@ services:
       POSTGRES_DB: maple
     volumes:
       - maple-postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # DB 자동 생성 스크립트 추가
     ports:
       - "5432:5432"
-    networks:
-      market-internal:
+    networks: market-internal
+
   maple-core:
     container_name: maple-core
     depends_on:
