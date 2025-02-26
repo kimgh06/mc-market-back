@@ -125,7 +125,6 @@ func createSurgeUser(api *api.MapleAPI, username string, password string) (*Surg
 }
 
 func unmarshalledBody(result *http.Response) (*SurgeUserResponse, error) {
-	fmt.Printf("result %+v\n", result)
 	defer result.Body.Close()
 
 	unmarshalled := new(SurgeUserResponse)
