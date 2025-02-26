@@ -3,7 +3,6 @@ package user
 import (
 	"maple/internal/api"
 	"maple/internal/api/responses"
-	"maple/internal/middlewares"
 	"maple/internal/nullable"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -15,7 +14,7 @@ import (
 
 func updateUser(ctx *gin.Context) {
 	a := api.Get(ctx)
-	user := middlewares.GetUser(ctx)
+	// user := middlewares.GetUser(ctx)
 
 	id, err := api.GetUint64FromParam(ctx, "id")
 	if err != nil {
