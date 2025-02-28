@@ -3,6 +3,7 @@ package articles
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"maple/internal/api"
 	"maple/internal/nullable"
 	"maple/internal/perrors"
@@ -166,6 +167,8 @@ func getArticle(ctx *gin.Context) {
 	}
 
 	comments := listComments(ctx, uint64(article.Article.ID))
+
+	fmt.Println(comments)
 
 	ctx.JSON(http.StatusOK, getArticleResponse{
 		ID:      strconv.FormatUint(uint64(article.Article.ID), 10),
