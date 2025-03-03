@@ -68,6 +68,7 @@ func listArticles(ctx *gin.Context) {
 	}
 
 	if err != nil {
+		fmt.Errorf("Failed to fetch articles from DB: %v", err) // 디버깅 로그 추가
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.WithJSON(err.Error()))
 		return
 	}
