@@ -71,9 +71,7 @@ func listArticles(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.WithJSON(err.Error()))
 		return
 	}
-
-	fmt.Printf("Fetched %d articles from DB\n", len(rows)) // 디버깅 로그 추가
-
+	
 	userIds := utilities.Map(rows, func(t *schema.ListArticlesRow) uint64 {
 		return uint64(t.User.ID)
 	})
@@ -90,6 +88,9 @@ func listArticles(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, articles)
 		return
 	}
+
+	fmt.Println(usernames)
+	fmt.Printf("Fetched %d articles from DB\n", len(rows)) // 디버깅 로그 추가
 	
 	for i, row := range rows {
     username, exists := usernames[uint64(row.User.ID)]
