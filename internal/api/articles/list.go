@@ -1,6 +1,7 @@
 package articles
 
 import (
+	"fmt"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -24,8 +25,14 @@ type listArticlesElement struct {
 	Likes int64 `json:"likes"`
 	Head 		*string       `json:"head"`
 }
-
 func listArticles(ctx *gin.Context) {
+	// Try-except equivalent in Go using defer-recover.
+	defer func() {
+		if r := recover(); r != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.WithJSON(fmt.Sprintf("unexpected error: %v", r)))
+		}
+	}()
+
 	a := api.Get(ctx)
 
 	offsetQuery := ctx.DefaultQuery("offset", "0")
@@ -41,7 +48,7 @@ func listArticles(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidQuery.MakeJSON(err.Error()))
 		return
 	}
-	
+
 	size = utilities.Clamp(size, 0, 20)
 
 	var rows []*schema.ListArticlesRow
@@ -53,7 +60,7 @@ func listArticles(ctx *gin.Context) {
 			Offset: int32(offset),
 			Limit:  int32(size),
 		})
-	}else{ 
+	} else {
 		headIDInt, err := strconv.Atoi(headId)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.InvalidQuery.MakeJSON(err.Error()))
@@ -65,7 +72,6 @@ func listArticles(ctx *gin.Context) {
 			Limit:  int32(size),
 		})
 	}
-	
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.WithJSON(err.Error()))
@@ -83,7 +89,7 @@ func listArticles(ctx *gin.Context) {
 	}
 
 	articles := make([]listArticlesElement, len(rows))
-	
+
 	for i, row := range rows {
 		articles[i] = listArticlesElement{
 			ID:    strconv.FormatUint(uint64(row.Article.ID), 10),
@@ -93,13 +99,13 @@ func listArticles(ctx *gin.Context) {
 				Username: usernames[uint64(row.User.ID)],
 				Nickname: row.User.Nickname.String,
 			},
-			CreatedAt: row.Article.CreatedAt,
-			UpdatedAt: row.Article.UpdatedAt,
-			Views:     row.Article.Views,
-			HasImg:    row.HasImg,
+			CreatedAt:    row.Article.CreatedAt,
+			UpdatedAt:    row.Article.UpdatedAt,
+			Views:        row.Article.Views,
+			HasImg:       row.HasImg,
 			CommentCount: row.CommentCount,
-			Likes: row.Likes,
-			Head: &row.Article.Head.String,
+			Likes:        row.Likes,
+			Head:         &row.Article.Head.String,
 		}
 	}
 
