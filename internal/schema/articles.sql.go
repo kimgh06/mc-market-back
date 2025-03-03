@@ -175,9 +175,9 @@ select articles.id, articles.title, articles.content, articles.created_at, artic
 	(select count(*) from articles_likes where articles_likes.article_id = articles.id and articles_likes.kind = true) as likes
 from articles
 		left join public.users u on u.id = articles.author
-where articles.index > $2::int and ((SELECT name FROM article_head_type WHERE article_head_type.id = articles.head::integer) not like '공지' or (SELECT name FROM article_head_type WHERE article_head_type.id = articles.head::integer) is null)
+where ((SELECT name FROM article_head_type WHERE article_head_type.id = articles.head::integer) not like '공지' or (SELECT name FROM article_head_type WHERE article_head_type.id = articles.head::integer) is null)
 order by articles.created_at desc
-limit $1
+limit $1 offset $2
 `
 
 type ListArticlesParams struct {
