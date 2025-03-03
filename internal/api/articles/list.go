@@ -89,7 +89,7 @@ func listArticles(ctx *gin.Context) {
 			Title: row.Article.Title,
 			Author: ArticleAuthor{
 				ID:       strconv.FormatInt(row.User.ID, 10),
-				Username: usernames[uint64(row.User.ID)],
+				Username: usernames[uint64(row.User.ID)-1],
 				Nickname: row.User.Nickname.String,
 			},
 			CreatedAt: row.Article.CreatedAt,
