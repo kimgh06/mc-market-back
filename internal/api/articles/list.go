@@ -49,6 +49,8 @@ func listArticles(ctx *gin.Context) {
 
 	headId := ctx.Query("head_id")
 
+	fmt.Println(headId)
+
 	if headId == "0" {
 		rows, err = a.Queries.ListArticles(ctx, schema.ListArticlesParams{
 			Offset: int32(offset),
