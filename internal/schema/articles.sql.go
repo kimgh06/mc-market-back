@@ -227,12 +227,7 @@ func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]*
 		}
 		items = append(items, &i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
+	// Removed redundant rows.Close() and rows.Err() check
 
 	rows, err = q.db.QueryContext(ctx, listArticles, arg.Limit, arg.Offset)
 	if err != nil {
