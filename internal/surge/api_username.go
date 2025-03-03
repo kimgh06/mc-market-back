@@ -48,6 +48,12 @@ func (a *API) ResolveUsernames(users []uint64) ([]string, error) {
 }
 
 func (a *API) ResolveUsernamesAsMap(users []uint64) (map[uint64]string, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in ResolveUsernamesAsMap", r)
+		}
+	}()
+
 	uniqueUsers := utilities.RemoveDuplicate(users)
 	usernames, err := a.ResolveUsernames(uniqueUsers)
 	if err != nil {

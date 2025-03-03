@@ -82,7 +82,6 @@ func listArticles(ctx *gin.Context) {
 
 	usernames, err := a.SurgeAPI.ResolveUsernamesAsMap(userIds)
 	if err != nil {
-		fmt.Println("Failed to fetch usernames from API") // 디버깅 로그 추가
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
