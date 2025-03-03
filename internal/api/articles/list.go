@@ -1,6 +1,7 @@
 package articles
 
 import (
+	"fmt"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
@@ -71,6 +72,8 @@ func listArticles(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Printf("Fetched %d articles from DB\n", len(rows)) // 디버깅 로그 추가
+
 	userIds := utilities.Map(rows, func(t *schema.ListArticlesRow) uint64 {
 		return uint64(t.User.ID)
 	})
@@ -82,6 +85,11 @@ func listArticles(ctx *gin.Context) {
 	}
 
 	articles := make([]listArticlesElement, len(rows))
+
+	if(len(rows) == 0){
+		ctx.JSON(http.StatusOK, articles)
+		return
+	}
 	
 	for i, row := range rows {
     username, exists := usernames[uint64(row.User.ID)]
