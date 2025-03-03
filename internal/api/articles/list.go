@@ -84,13 +84,17 @@ func listArticles(ctx *gin.Context) {
 	articles := make([]listArticlesElement, len(rows))
 	
 	for i, row := range rows {
-		articles[i] = listArticlesElement{
+    username, exists := usernames[uint64(row.User.ID)]
+    if !exists {
+			username = "unknown" // 기본값 설정
+    }
+    articles[i] = listArticlesElement{
 			ID:    strconv.FormatUint(uint64(row.Article.ID), 10),
 			Title: row.Article.Title,
 			Author: ArticleAuthor{
-				ID:       strconv.FormatInt(row.User.ID, 10),
-				Username: usernames[uint64(row.User.ID)-1],
-				Nickname: row.User.Nickname.String,
+					ID:       strconv.FormatInt(row.User.ID, 10),
+					Username: username,
+					Nickname: row.User.Nickname.String,
 			},
 			CreatedAt: row.Article.CreatedAt,
 			UpdatedAt: row.Article.UpdatedAt,
@@ -99,7 +103,7 @@ func listArticles(ctx *gin.Context) {
 			CommentCount: row.CommentCount,
 			Likes: row.Likes,
 			Head: &row.Article.Head.String,
-		}
+    }
 	}
 
 	ctx.JSON(http.StatusOK, articles)
