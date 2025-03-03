@@ -86,6 +86,8 @@ func listArticles(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println("Fetched usernames from API") // 디버깅 로그 추가
+
 	articles := make([]listArticlesElement, len(rows))
 
 	if(len(rows) == 0){
