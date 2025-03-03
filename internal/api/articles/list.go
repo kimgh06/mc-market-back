@@ -71,16 +71,22 @@ func listArticles(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.WithJSON(err.Error()))
 		return
 	}
-	
+
+	fmt.Printf("Fetched %d articles from DB\n", len(rows)) // 디버깅 로그 추가
+
 	userIds := utilities.Map(rows, func(t *schema.ListArticlesRow) uint64 {
 		return uint64(t.User.ID)
 	})
+
+	fmt.Println(userIds)
 
 	usernames, err := a.SurgeAPI.ResolveUsernamesAsMap(userIds)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
+
+	fmt.Println(usernames)
 
 	articles := make([]listArticlesElement, len(rows))
 
@@ -89,8 +95,7 @@ func listArticles(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(usernames)
-	fmt.Printf("Fetched %d articles from DB\n", len(rows)) // 디버깅 로그 추가
+	fmt.Println(len(rows))
 	
 	for i, row := range rows {
     username, exists := usernames[uint64(row.User.ID)]
