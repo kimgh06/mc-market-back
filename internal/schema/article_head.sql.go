@@ -7,10 +7,11 @@ package schema
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getArticleHeadbyName = `-- name: GetArticleHeadByName :one
-select id, name
+select id, name, webhook_url
 from article_head_type
 where name = $1
 `
@@ -20,20 +21,27 @@ type GetArticleHeadByNameParams struct {
 }
 
 type ArticleHead struct {
-	ID   int `json:"id"`
-	IsAdmin bool `json:"is_admin"`
-	Name string `json:"name"`
+	ID         int    `json:"id"`
+	IsAdmin    bool   `json:"is_admin"`
+	Name       string `json:"name"`
+	WebhookURL string `json:"webhook_url"`
 }
 
 func (q *Queries) GetArticleHeadByName(ctx context.Context, arg GetArticleHeadByNameParams) (ArticleHead, error) {
 	row := q.db.QueryRowContext(ctx, getArticleHeadbyName, arg.Name)
 	var i ArticleHead
-	err := row.Scan(&i.ID, &i.Name, &i.IsAdmin)
+	var webhookURL sql.NullString
+	err := row.Scan(&i.ID, &i.Name, &i.IsAdmin, &webhookURL)
+	if webhookURL.Valid {
+		i.WebhookURL = webhookURL.String
+	} else {
+		i.WebhookURL = ""
+	}
 	return i, err
 }
 
 const getArticleHeadList = `-- name: GetArticleHeadList :many
-select id, name, is_admin
+select id, name, is_admin, webhook_url
 from article_head_type
 order by case 
 	when name = '공지' then 0 
@@ -51,8 +59,14 @@ func (q *Queries) GetArticleHeadList(ctx context.Context) ([]ArticleHead, error)
 	var items []ArticleHead
 	for rows.Next() {
 		var i ArticleHead
-		if err := rows.Scan(&i.ID, &i.Name, &i.IsAdmin); err != nil {
+		var webhookURL sql.NullString
+		if err := rows.Scan(&i.ID, &i.Name, &i.IsAdmin, &webhookURL); err != nil {
 			return nil, err
+		}
+		if webhookURL.Valid {
+			i.WebhookURL = webhookURL.String
+		} else {
+			i.WebhookURL = ""
 		}
 		items = append(items, i)
 	}
@@ -60,7 +74,7 @@ func (q *Queries) GetArticleHeadList(ctx context.Context) ([]ArticleHead, error)
 }
 
 const getArticleHeadbyID = `-- name: GetArticleHeadByID :one
-select id, name, is_admin
+select id, name, is_admin, webhook_url
 from article_head_type
 where id = $1
 `
@@ -69,17 +83,22 @@ type GetArticleHeadByIDParams struct {
 	ID int `json:"id"`
 }
 
-
 func (q *Queries) GetArticleHeadByID(ctx context.Context, arg GetArticleHeadByIDParams) (ArticleHead, error) {
 	row := q.db.QueryRowContext(ctx, getArticleHeadbyID, arg.ID)
 	var i ArticleHead
-	err := row.Scan(&i.ID, &i.Name, &i.IsAdmin)
+	var webhookURL sql.NullString
+	err := row.Scan(&i.ID, &i.Name, &i.IsAdmin, &webhookURL)
+	if webhookURL.Valid {
+		i.WebhookURL = webhookURL.String
+	} else {
+		i.WebhookURL = ""
+	}
 	return i, err
 }
 
 const createArticleHead = `-- name: CreateArticleHead :exec
-insert into article_head_type (id, name)
-values ($1, $2)
+insert into article_head_type (id, name, webhook_url)
+values ($1, $2, $3)
 `
 
 func (q *Queries) CreateArticleHead(ctx context.Context, arg ArticleHead) error {
@@ -92,13 +111,14 @@ func (q *Queries) CreateArticleHead(ctx context.Context, arg ArticleHead) error 
 	_, err = q.db.ExecContext(ctx, createArticleHead,
 		arg.ID,
 		arg.Name,
+		arg.WebhookURL,
 	)
 	return err
 }
 
 const updateArticleHead = `-- name: UpdateArticleHead :exec
 update article_head_type
-set name = $2, is_admin = $3
+set name = $2, is_admin = $3, webhook_url = $4
 where id = $1
 `
 
@@ -107,6 +127,7 @@ func (q *Queries) UpdateArticleHead(ctx context.Context, arg ArticleHead) error 
 		arg.ID,
 		arg.Name,
 		arg.IsAdmin,
+		arg.WebhookURL,
 	)
 	return err
 }

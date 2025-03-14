@@ -12,8 +12,9 @@ import (
 )
 
 type UpdateArticleHead struct {
-	Name string `json:"name"`
-	IsAdmin bool `json:""`
+	Name       string `json:"name"`
+	IsAdmin    bool   `json:"is_admin"`
+	WebhookURL string `json:"webhook_url"`
 }
 
 func updateHead(ctx *gin.Context) {
@@ -39,9 +40,10 @@ func updateHead(ctx *gin.Context) {
 	}
 
 	err = a.Queries.UpdateArticleHead(ctx, schema.ArticleHead{
-		ID:   id,
-		IsAdmin: body.IsAdmin,
-		Name: body.Name,
+		ID:         id,
+		IsAdmin:    body.IsAdmin,
+		Name:       body.Name,
+		WebhookURL: body.WebhookURL,
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))

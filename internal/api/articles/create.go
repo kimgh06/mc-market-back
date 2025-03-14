@@ -3,12 +3,14 @@ package articles
 import (
 	"bytes"
 	"database/sql"
+	"fmt"
 	"html/template"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/godruoyi/go-snowflake"
@@ -51,8 +53,11 @@ func createArticle(ctx *gin.Context) {
 		return
 	}
 
+	
+	ID := int64(snowflake.ID())
+
 	row, err := a.Queries.CreateArticle(ctx, schema.CreateArticleParams{
-		ID:      int64(snowflake.ID()),
+		ID:      ID,
 		Title:   body.Title,
 		Content: buffer.String(),
 		Author:  user.ID,
@@ -64,6 +69,25 @@ func createArticle(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 		return
 	}
+	
+	headID, err := strconv.Atoi(row.Head.String)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.UnknownInternalError.MakeJSON(err.Error()))
+		return
+	}
+	Head, err := a.Queries.GetArticleHeadByID(ctx, schema.GetArticleHeadByIDParams{ID: headID})
+	if err != nil {
+		fmt.Println(err, "No webhook URL")
+		ctx.JSON(http.StatusOK, row)
+		return
+	}
 
+	// Request HTTP POST to webhook_url
+	if Head.WebhookURL != "" {
+		http.Post(Head.WebhookURL, 
+			"application/json", 
+			bytes.NewBuffer([]byte(fmt.Sprintf(`{"content": "새로운 글이 등록되었습니다.\n https://mc-market.kr/articles/%d"}`, ID))))
+	}
+	
 	ctx.JSON(http.StatusOK, row)
 }

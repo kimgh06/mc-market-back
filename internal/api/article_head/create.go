@@ -12,8 +12,9 @@ import (
 )
 
 type CreateArticleHead struct {
-	Name  string `json:"name"`
-	IsAdmin bool `json:"is_admin"`
+	Name       string `json:"name"`
+	IsAdmin    bool   `json:"is_admin"`
+	WebhookURL string `json:"webhook_url"`
 }
 
 func createHead(ctx *gin.Context) {
@@ -34,9 +35,10 @@ func createHead(ctx *gin.Context) {
 	headID := rand.IntN(100000)
 	
 	err := a.Queries.CreateArticleHead(ctx, schema.ArticleHead{
-		ID:   headID,
-		IsAdmin: body.IsAdmin,
-		Name:  body.Name,
+		ID:         headID,
+		IsAdmin:    body.IsAdmin,
+		Name:       body.Name,
+		WebhookURL: body.WebhookURL,
 	})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))

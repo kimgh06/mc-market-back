@@ -12,6 +12,7 @@ type getArticleHeadListResponse struct {
 	ID   int64  `json:"id"`
 	IsAdmin bool `json:"is_admin"`
 	Name string `json:"name"`
+	WebhookURL string `json:"webhook_url"`
 }
 
 func getHeadList(ctx *gin.Context) {
@@ -29,6 +30,7 @@ func getHeadList(ctx *gin.Context) {
 			ID:   int64(head.ID),
 			IsAdmin: head.IsAdmin,
 			Name: head.Name,
+			WebhookURL: head.WebhookURL,
 		})
 	}
 	
