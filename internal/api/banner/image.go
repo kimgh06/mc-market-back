@@ -1,10 +1,14 @@
 package banner
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io"
 	"maple/internal/api"
 	"maple/internal/perrors"
 	"maple/internal/schema"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -41,18 +45,61 @@ func uploadImage(ctx *gin.Context) {
 		return
 	}
 
-	imagePath := time.Now().Format("20060102150405")
+	key := os.Getenv("IMGBB_API_KEY")
 
-	err = ctx.SaveUploadedFile(file, filepath.Join(a.Config.Storage.ImagesPath, "banners", imagePath))
+	// create multipart form
+	formBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(formBody)
+	part, err := writer.CreateFormFile("image", file.Filename)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedStorage.MakeJSON(err.Error()))
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+	
+	fileContent, err := file.Open()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+	defer fileContent.Close()
+	
+	_, err = io.Copy(part, fileContent)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+	writer.Close()
+
+	// api request to imgbb
+	req, _ := http.NewRequest("POST", "https://api.imgbb.com/1/upload?key="+key, formBody)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+	defer res.Body.Close()
+
+	// get response from imgbb
+	var imgbbResponse map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&imgbbResponse)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+
+	imagePath, ok := imgbbResponse["data"].(map[string]interface{})["url"].(string)
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
 		return
 	}
 
 	// create banner in database
 	_, err = a.Queries.CreateBanner(ctx, schema.CreateBannerParams{ 
 		Title:    body.Title,
-		ImageURL: "/v1/banner/image/" + imagePath,
+		ImageURL: imagePath,
 		LinkURL: body.LinkURL,
 		IndexNum: body.IndexNum,
 	})
@@ -102,6 +149,61 @@ func updateImage(ctx *gin.Context) {
 		}
 		body.ImageURL = imagePath
 	}
+
+	if newFile != nil {
+		key := os.Getenv("IMGBB_API_KEY")
+
+		// create multipart form
+		formBody := &bytes.Buffer{}
+		writer := multipart.NewWriter(formBody)
+		part, err := writer.CreateFormFile("image", newFile.Filename)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+			return
+		}
+		
+		fileContent, err := newFile.Open()
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+			return
+		}
+		defer fileContent.Close()
+		
+		_, err = io.Copy(part, fileContent)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+			return
+		}
+		writer.Close()
+
+		// api request to imgbb
+		req, _ := http.NewRequest("POST", "https://api.imgbb.com/1/upload?key="+key, formBody)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		
+		client := &http.Client{}
+		res, err := client.Do(req)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+			return
+		}
+		defer res.Body.Close()
+
+		// get response from imgbb
+		var imgbbResponse map[string]interface{}
+		err = json.NewDecoder(res.Body).Decode(&imgbbResponse)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+			return
+		}
+
+		imagePath, ok := imgbbResponse["data"].(map[string]interface{})["url"].(string)
+		if !ok {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
+			return
+		}
+		body.ImageURL = imagePath
+	}
+
 
 	if body.Title == "" {
 		body.Title = image.Title
