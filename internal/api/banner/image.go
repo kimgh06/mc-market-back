@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"maple/internal/api"
 	"maple/internal/perrors"
@@ -77,6 +78,7 @@ func uploadImage(ctx *gin.Context) {
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
+		fmt.Println(url + "/upload")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
