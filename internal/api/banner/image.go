@@ -45,12 +45,12 @@ func uploadImage(ctx *gin.Context) {
 		return
 	}
 
-	key := os.Getenv("IMGBB_API_KEY")
+	url := os.Getenv("IMG_URL")
 
 	// create multipart form
 	formBody := &bytes.Buffer{}
 	writer := multipart.NewWriter(formBody)
-	part, err := writer.CreateFormFile("image", file.Filename)
+	part, err := writer.CreateFormFile("file", file.Filename)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
@@ -71,7 +71,7 @@ func uploadImage(ctx *gin.Context) {
 	writer.Close()
 
 	// api request to imgbb
-	req, _ := http.NewRequest("POST", "https://api.imgbb.com/1/upload?key="+key, formBody)
+	req, _ := http.NewRequest("POST", url + "/upload", formBody)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	
 	client := &http.Client{}
@@ -83,14 +83,14 @@ func uploadImage(ctx *gin.Context) {
 	defer res.Body.Close()
 
 	// get response from imgbb
-	var imgbbResponse map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&imgbbResponse)
+	var img_response map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&img_response)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
 
-	imagePath, ok := imgbbResponse["data"].(map[string]interface{})["url"].(string)
+	imagePath, ok := img_response["url"].(string)
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
 		return
@@ -99,7 +99,7 @@ func uploadImage(ctx *gin.Context) {
 	// create banner in database
 	_, err = a.Queries.CreateBanner(ctx, schema.CreateBannerParams{ 
 		Title:    body.Title,
-		ImageURL: imagePath,
+		ImageURL: url + imagePath,
 		LinkURL: body.LinkURL,
 		IndexNum: body.IndexNum,
 	})
@@ -151,12 +151,12 @@ func updateImage(ctx *gin.Context) {
 	}
 
 	if newFile != nil {
-		key := os.Getenv("IMGBB_API_KEY")
+		url := os.Getenv("IMG_URL")
 
 		// create multipart form
 		formBody := &bytes.Buffer{}
 		writer := multipart.NewWriter(formBody)
-		part, err := writer.CreateFormFile("image", newFile.Filename)
+		part, err := writer.CreateFormFile("file", newFile.Filename)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 			return
@@ -177,7 +177,7 @@ func updateImage(ctx *gin.Context) {
 		writer.Close()
 
 		// api request to imgbb
-		req, _ := http.NewRequest("POST", "https://api.imgbb.com/1/upload?key="+key, formBody)
+		req, _ := http.NewRequest("POST", url + "/upload", formBody)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 		
 		client := &http.Client{}
@@ -189,19 +189,19 @@ func updateImage(ctx *gin.Context) {
 		defer res.Body.Close()
 
 		// get response from imgbb
-		var imgbbResponse map[string]interface{}
-		err = json.NewDecoder(res.Body).Decode(&imgbbResponse)
+		var img_response map[string]interface{}
+		err = json.NewDecoder(res.Body).Decode(&img_response)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 			return
 		}
 
-		imagePath, ok := imgbbResponse["data"].(map[string]interface{})["url"].(string)
+		imagePath, ok := img_response["url"].(string)
 		if !ok {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
 			return
 		}
-		body.ImageURL = imagePath
+		body.ImageURL = url + imagePath
 	}
 
 
