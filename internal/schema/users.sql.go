@@ -155,3 +155,36 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, 
 	)
 	return &i, err
 }
+
+
+// upload user image
+const uploadUserImage = `-- name: UploadUserImage :one
+update users
+set image_url = $2
+where id = $1
+`
+
+type UploadUserImageParams struct {
+	ID       int64          `json:"id"`
+	ImageURL sql.NullString `json:"image_url"`
+}	
+
+func (q *Queries) UploadUserImage(ctx context.Context, arg UploadUserImageParams) error {
+	_, err := q.db.ExecContext(ctx, uploadUserImage, arg.ID, arg.ImageURL)
+	return err
+}
+
+// get user image
+const getUserImage = `-- name: GetUserImage :one
+select image_url
+from users
+where id = $1
+`
+
+func (q *Queries) GetUserImage(ctx context.Context, id int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getUserImage, id)
+	var imageURL string
+	err := row.Scan(&imageURL)
+	return imageURL, err
+}
+
