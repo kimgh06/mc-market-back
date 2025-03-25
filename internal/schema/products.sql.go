@@ -243,3 +243,38 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (*
 	)
 	return &i, err
 }
+
+
+// Upload imageURL
+const uploadImage = `-- name: UploadImage :one
+update products
+set image_url = $1,
+	updated_at = now()
+where id = $2
+returning id, creator, category, name, description, usage, price, price_discount, ts, created_at, updated_at, details, tags, image_url
+`
+
+type UploadImageParams struct {
+	ImageURL string `json:"image_url"`
+	ID       int64  `json:"id"`
+}
+
+func (q *Queries) UploadImage(ctx context.Context, arg UploadImageParams) (error) {
+	_, err := q.db.ExecContext(ctx, uploadImage, arg.ImageURL,
+		arg.ID)
+	return err
+}
+
+// Get imageURL
+const getImage = `-- name: GetImage :one
+select image_url
+from products
+where id = $1
+`
+
+func (q *Queries) GetImage(ctx context.Context, id int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getImage, id)
+	var i string
+	err := row.Scan(&i)
+	return i, err
+}

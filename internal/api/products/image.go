@@ -3,15 +3,15 @@ package products
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
+	"maple/internal/schema"
+	"maple/pkg/files"
 	"maple/pkg/permissions"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func uploadImage(ctx *gin.Context) {
@@ -44,11 +44,28 @@ func uploadImage(ctx *gin.Context) {
 		return
 	}
 
-	err = ctx.SaveUploadedFile(file, filepath.Join(a.Config.Storage.ImagesPath, "products", strconv.FormatUint(id, 10)))
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedStorage.MakeJSON(err.Error()))
+	
+	returnedURL := files.UploadAndReturnURL(ctx, file)
+	if returnedURL == "" {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to upload image"))
 		return
 	}
+
+	err = a.Queries.UploadImage(ctx, schema.UploadImageParams{
+		ImageURL: returnedURL,
+		ID:       int64(id),
+	})
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+		return
+	}
+
+	// err = ctx.SaveUploadedFile(file, filepath.Join(a.Config.Storage.ImagesPath, "products", strconv.FormatUint(id, 10)))
+	// if err != nil {
+	// 	ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedStorage.MakeJSON(err.Error()))
+	// 	return
+	// }
 
 	ctx.Status(http.StatusOK)
 }
@@ -61,19 +78,22 @@ func getImage(ctx *gin.Context) {
 		return
 	}
 
-	path := filepath.Join(a.Config.Storage.ImagesPath, "products", strconv.FormatUint(id, 10))
-
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		ctx.Status(http.StatusNoContent)
+	imageURL, err := a.Queries.GetImage(ctx, int64(id))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, perrors.NotFound.MakeJSON())
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+		}
 		return
 	}
 
-	bytes, err := os.ReadFile(path)
+	bytes, err := files.ReadImage(imageURL)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedStorage.MakeJSON(err.Error()))
 		return
 	}
-
+	
 	contentType := http.DetectContentType(bytes)
 
 	ctx.Header("Content-Type", contentType)
