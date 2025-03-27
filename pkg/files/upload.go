@@ -70,6 +70,7 @@ func UploadAndReturnURL(ctx *gin.Context, file *multipart.FileHeader) string {
 		return ""
 	}
 	
+	fmt.Println(img_response)
 	data, ok := img_response["data"].(map[string]interface{})
 	if !ok {
 		fmt.Println(data, err)
