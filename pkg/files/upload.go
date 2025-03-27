@@ -69,15 +69,17 @@ func UploadAndReturnURL(ctx *gin.Context, file *multipart.FileHeader) string {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Invalid response format: "+err.Error()))
 		return ""
 	}
-
+	
 	data, ok := img_response["data"].(map[string]interface{})
 	if !ok {
+		fmt.Println(body, err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image data"))
 		return ""
 	}
-
+	
 	imagePath, ok := data["url"].(string)
 	if !ok {
+		fmt.Println(body, err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
 		return ""
 	}
