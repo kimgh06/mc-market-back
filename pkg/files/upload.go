@@ -56,20 +56,31 @@ func UploadAndReturnURL(ctx *gin.Context, file *multipart.FileHeader) string {
 	defer res.Body.Close()
 
 	// get response from imgbb
-	var img_response map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&img_response)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return ""
 	}
 
-	imagePath, ok := img_response["url"].(string)
+	var img_response map[string]interface{}
+	if err = json.Unmarshal(body, &img_response); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Invalid response format: "+err.Error()))
+		return ""
+	}
+
+	data, ok := img_response["data"].(map[string]interface{})
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image data"))
+		return ""
+	}
+
+	imagePath, ok := data["url"].(string)
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
 		return ""
 	}
 
-	return url + imagePath
+	return imagePath
 }
 
 func ReadImage(path string) ([]byte, error) {
