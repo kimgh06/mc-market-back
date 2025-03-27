@@ -78,7 +78,7 @@ func UploadAndReturnURL(ctx *gin.Context, file *multipart.FileHeader) string {
 		return ""
 	}
 
-	return url+imagePath
+	return url+"/"+imagePath
 }
 
 func ReadImage(path string) ([]byte, error) {
