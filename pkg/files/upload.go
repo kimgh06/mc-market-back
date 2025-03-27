@@ -3,6 +3,7 @@ package files
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"maple/internal/perrors"
 	"mime/multipart"
@@ -64,6 +65,7 @@ func UploadAndReturnURL(ctx *gin.Context, file *multipart.FileHeader) string {
 
 	var img_response map[string]interface{}
 	if err = json.Unmarshal(body, &img_response); err != nil {
+		fmt.Println(body, err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Invalid response format: "+err.Error()))
 		return ""
 	}
