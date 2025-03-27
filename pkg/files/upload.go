@@ -71,17 +71,10 @@ func UploadAndReturnURL(ctx *gin.Context, file *multipart.FileHeader) string {
 	}
 	
 	fmt.Println(img_response)
-	data, ok := img_response["data"].(map[string]interface{})
-	if !ok {
-		fmt.Println(data, err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image data"))
-		return ""
-	}
-	
-	imagePath, ok := data["url"].(string)
+	imagePath, ok := img_response["filename"].(string)
 	if !ok {
 		fmt.Println(imagePath, err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image url"))
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("Failed to get image data"))
 		return ""
 	}
 
