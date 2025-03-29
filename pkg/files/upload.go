@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
 )
 
@@ -88,5 +89,23 @@ func ReadImage(path string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	return io.ReadAll(resp.Body)
+	img, err := imaging.Decode(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resize to 30% of original size
+	bounds := img.Bounds()
+	newWidth := int(float64(bounds.Max.X) * 0.1)
+	newHeight := int(float64(bounds.Max.Y) * 0.1)
+	resizedImg := imaging.Resize(img, newWidth, newHeight, imaging.Lanczos)
+
+	// Convert back to bytes
+	buf := new(bytes.Buffer)
+	err = imaging.Encode(buf, resizedImg, imaging.JPEG)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

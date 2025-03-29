@@ -9,6 +9,7 @@ import (
 	"maple/internal/perrors"
 	"maple/internal/schema"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ type CreateUserResponse struct {
 }
 
 type SurgeUserResponse struct {
-	ID uint64 `json:"id"`
+	ID *string `json:"id"`
 
 	Email    *string `json:"email"`
 	Username *string `json:"username"`
@@ -64,10 +65,11 @@ func createUser(ctx *gin.Context) {
 	fmt.Printf("body %+v\n", body)
 	fmt.Printf("createUserResponse: %+v\n", createUserResponse)
 
-	snowflakeId := snowflake.ParseID(createUserResponse.ID)
+	uintedId, err := strconv.ParseUint(*createUserResponse.ID, 10, 64)
+	snowflakeId := snowflake.ParseID(uintedId)
 
 	mapleUser, err := a.Queries.CreateUser(ctx, schema.CreateUserParams{
-		ID:        int64(createUserResponse.ID),
+		ID:        int64(uintedId),
 		Nickname:  sql.NullString{String: body.Nickname, Valid: body.Nickname != ""},
 		CreatedAt: snowflakeId.GenerateTime(),
 	})
