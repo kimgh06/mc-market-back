@@ -56,6 +56,25 @@ func createUser(ctx *gin.Context) {
 		return
 	}
 
+	if body.Nickname != "" {
+		if len(body.Nickname) > 32 {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname must be 32 characters or less"))
+			return
+		}
+
+		// Check for duplicate nickname
+		existingUser, err := a.Queries.GetUserByNickname(ctx, sql.NullString{String: body.Nickname, Valid: true})
+		if err != nil && err != sql.ErrNoRows {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
+			return
+		}
+		if existingUser != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname already exists"))
+			return
+		}
+	}
+
+
 	createUserResponse, err := createSurgeUser(a, body.Username, body.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
