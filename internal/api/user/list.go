@@ -1,7 +1,6 @@
 package user
 
 import (
-	"github.com/gin-gonic/gin"
 	"maple/internal/api"
 	"maple/internal/api/responses"
 	"maple/internal/middlewares"
@@ -11,6 +10,8 @@ import (
 	"maple/pkg/permissions"
 	"math"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func listUsers(ctx *gin.Context) {
@@ -22,7 +23,7 @@ func listUsers(ctx *gin.Context) {
 	}
 
 	offset := utilities.Clamp(api.QueryIntDefault(ctx, "offset", 0), 0, math.MaxInt)
-	limit := utilities.Clamp(api.QueryIntDefault(ctx, "limit", 20), 0, 20)
+	limit := utilities.Clamp(api.QueryIntDefault(ctx, "limit", 100), 0, 100)
 
 	users, err := a.Queries.ListUsers(ctx, schema.ListUsersParams{
 		Offset: int32(offset),
