@@ -63,15 +63,16 @@ func createUser(ctx *gin.Context) {
 		}
 
 		// Check for duplicate nickname
-		existingUser, err := a.Queries.GetUserByNickname(ctx, sql.NullString{String: body.Nickname, Valid: true})
+		existingUser, err := a.Queries.GetUserByNickname(ctx, body.Nickname)
 		if err != nil && err != sql.ErrNoRows {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 			return
 		}
-		if existingUser != nil && existingUser.ID != 0 {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname already exists"))
-			return
-		}
+		fmt.Println(existingUser)
+		// if existingUser != nil {
+		// 	ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname already exists"))
+		// 	return
+		// }
 	}
 
 
@@ -89,7 +90,7 @@ func createUser(ctx *gin.Context) {
 
 	mapleUser, err := a.Queries.CreateUser(ctx, schema.CreateUserParams{
 		ID:        int64(uintedId),
-		Nickname:  sql.NullString{String: body.Nickname, Valid: body.Nickname != ""},
+		Nickname:  body.Nickname,
 		CreatedAt: snowflakeId.GenerateTime(),
 	})
 	if err != nil {

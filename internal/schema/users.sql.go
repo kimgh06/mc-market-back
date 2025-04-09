@@ -19,7 +19,7 @@ returning id, nickname, permissions, created_at, updated_at, cash
 
 type CreateUserParams struct {
 	ID        int64          `json:"id"`
-	Nickname  sql.NullString `json:"nickname"`
+	Nickname  string `json:"nickname"`
 	CreatedAt time.Time      `json:"created_at"`
 }
 
@@ -63,7 +63,7 @@ from users
 where nickname = $1
 `
 
-func (q *Queries) GetUserByNickname(ctx context.Context, nickname sql.NullString) (*User, error) {
+func (q *Queries) GetUserByNickname(ctx context.Context, nickname string) (*User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByNickname, nickname)
 	var i User
 	err := row.Scan(
