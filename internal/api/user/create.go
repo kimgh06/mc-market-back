@@ -68,7 +68,7 @@ func createUser(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedDatabase.MakeJSON(err.Error()))
 			return
 		}
-		if existingUser != nil {
+		if existingUser != nil && existingUser.ID != 0 {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname already exists"))
 			return
 		}
