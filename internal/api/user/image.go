@@ -3,7 +3,6 @@ package user
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"maple/internal/api"
 	"maple/internal/middlewares"
 	"maple/internal/perrors"
@@ -57,7 +56,6 @@ func getImage(ctx *gin.Context) {
 	}
 
 	imageURL, err := a.Queries.GetUserImage(ctx, int64(id))
-	fmt.Println(imageURL)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

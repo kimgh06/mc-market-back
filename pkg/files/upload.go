@@ -96,8 +96,9 @@ func ReadImage(path string) ([]byte, error) {
 
 	// Resize to 30% of original size
 	bounds := img.Bounds()
-	newWidth := int(float64(bounds.Max.X) * 0.1)
-	newHeight := int(float64(bounds.Max.Y) * 0.1)
+	resize := 0.5
+	newWidth := int(float64(bounds.Max.X) * resize)
+	newHeight := int(float64(bounds.Max.Y) * resize)
 	resizedImg := imaging.Resize(img, newWidth, newHeight, imaging.Lanczos)
 
 	// Convert back to bytes

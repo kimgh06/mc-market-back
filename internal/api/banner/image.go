@@ -164,7 +164,6 @@ func getImage(ctx *gin.Context) {
 
 func getImageFromUrl(ctx *gin.Context) {
 	path := ctx.Param("path")
-	println(path)
 	
 	if path == "" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.BannerNotFound.MakeJSON("Invalid path"))
