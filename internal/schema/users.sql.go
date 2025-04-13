@@ -37,6 +37,20 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, 
 	return &i, err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+delete from users
+where id = $1
+`
+
+type DeleteUserParams struct {
+	ID int64 `json:"id"`
+}
+
+func (q *Queries) DeleteUser(ctx context.Context, arg DeleteUserParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, arg.ID)
+	return err
+}
+
 const getUserById = `-- name: GetUserById :one
 select id, nickname, permissions, created_at, updated_at, cash
 from users

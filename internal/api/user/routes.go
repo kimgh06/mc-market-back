@@ -15,6 +15,7 @@ func InitializeRoutes(a *api.MapleAPI) {
 			a.GET("/revenues/", getUnclaimedRevenues)
 			a.GET("/", listUsers)
 			a.POST("/:id/", updateUser)
+			a.POST("/delete/:id/", deleteUser)
 		})
 
 		a.Route("/", func(a *api.MapleAPI) {
