@@ -1,13 +1,14 @@
 package products
 
 import (
-	"github.com/gin-gonic/gin"
 	"maple/internal/api"
 	"maple/internal/api/responses"
 	"maple/internal/perrors"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func getProduct(ctx *gin.Context) {
@@ -32,7 +33,7 @@ func getProduct(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
-	if len(usernames) < 0 {
+	if len(usernames) <= 0 {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON())
 		return
 	}
