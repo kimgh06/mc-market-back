@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maple/internal/utilities"
 	"strconv"
 	"strings"
 )
@@ -53,16 +54,20 @@ func (a *API) ResolveUsernamesAsMap(users []uint64) (map[uint64]string, error) {
 		}
 	}()
 
-	// uniqueUsers := utilities.RemoveDuplicate(users)
-	usernames, err := a.ResolveUsernames(users)
+	uniqueUsers := utilities.RemoveDuplicate(users)
+	usernames, err := a.ResolveUsernames(uniqueUsers)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(usernames) != len(uniqueUsers) {
+		return nil, fmt.Errorf("username count mismatch: got %d usernames for %d users", len(usernames), len(uniqueUsers))
+	}
+
 	result := make(map[uint64]string)
 
-	for i := range users {
-		result[users[i]] = usernames[i]
+	for i := range uniqueUsers {
+		result[uniqueUsers[i]] = usernames[i]
 	}
 
 	return result, nil
