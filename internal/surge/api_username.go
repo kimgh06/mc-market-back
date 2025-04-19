@@ -60,10 +60,6 @@ func (a *API) ResolveUsernamesAsMap(users []uint64) (map[uint64]string, error) {
 		return nil, err
 	}
 
-	if len(usernames) != len(uniqueUsers) {
-		return nil, fmt.Errorf("username count mismatch: got %d usernames for %d users", len(usernames), len(uniqueUsers))
-	}
-
 	result := make(map[uint64]string)
 
 	for i := range uniqueUsers {
