@@ -34,7 +34,7 @@ func getProduct(ctx *gin.Context) {
 		// 	return
 		// }
 	name := product.User.Nickname.String
-	if len(usernames) >= 0 {
+	if len(usernames) > 0 {
 		// ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON())
 		// return
 		name = usernames[0]
