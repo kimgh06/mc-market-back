@@ -29,16 +29,18 @@ func getProduct(ctx *gin.Context) {
 
 	converted := responses.ProductWithShortUserFromSchema(product)
 	usernames, err := a.SurgeAPI.ResolveUsernames([]uint64{uint64(product.User.ID)})
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
-		return
-	}
-	if len(usernames) <= 0 {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON())
-		return
+	// if err != nil {
+		// 	ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		// 	return
+		// }
+	name := product.User.Nickname.String
+	if len(usernames) >= 0 {
+		// ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON())
+		// return
+		name = usernames[0]
 	}
 
-	converted.Creator.Username = &usernames[0]
+	converted.Creator.Username = &name
 
 	ctx.JSON(http.StatusOK, converted)
 }
