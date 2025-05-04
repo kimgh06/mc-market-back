@@ -69,15 +69,15 @@ func createUser(ctx *gin.Context) {
 			return
 		}
 		fmt.Println(existingUser)
-		// if existingUser != nil {
-		// 	ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname already exists"))
-		// 	return
-		// }
+		if existingUser != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, perrors.FailedValidate.MakeJSON("nickname already exists"))
+			return
+		}
 	}
 
 
 	createUserResponse, err := createSurgeUser(a, body.Username, body.Password)
-	if err != nil || createUserResponse.ID == nil || *createUserResponse.ID == "0" {
+	if err != nil || createUserResponse == nil || createUserResponse.ID == nil || *createUserResponse.ID == "0" {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
 		return
 	}
