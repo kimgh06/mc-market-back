@@ -90,7 +90,7 @@ func createUser(ctx *gin.Context) {
 
 	mapleUser, err := a.Queries.CreateUser(ctx, schema.CreateUserParams{
 		ID:        int64(uintedId),
-		Nickname:  body.Nickname,
+		Nickname:  body.Username,
 		CreatedAt: snowflakeId.GenerateTime(),
 	})
 	if err != nil {
