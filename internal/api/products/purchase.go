@@ -12,6 +12,7 @@ import (
 	"maple/internal/schema"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func purchaseProduct(ctx *gin.Context) {
@@ -50,6 +51,32 @@ func purchaseProduct(ctx *gin.Context) {
 		})
 		if err != nil {
 			return err
+		}
+		creater_id := product.Product.Creator
+		currentTime := time.Now()
+		month := currentTime.Format("2006-01")
+		_, err = queries.GetSettlementByUserIdAndMonth(ctx, schema.GetSettlementParams{
+			UserId: creater_id,
+			Month:  month,
+		})
+		if errors.Is(err, sql.ErrNoRows) {
+			// Create a new settlement for the creator
+			_, err = queries.CreateSettlement(ctx, schema.SettlementParams{
+				UserId: creater_id,
+				Amount: currentPrice,
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			// Update existing settlement
+			_, err = queries.IncreaseSettlement(ctx, schema.SettlementParams{
+				UserId: creater_id,
+				Amount: currentPrice,
+			})
+			if err != nil {
+				return err
+			}
 		}
 
 		_, err = queries.UpdateUser(ctx, schema.UpdateUserParams{
