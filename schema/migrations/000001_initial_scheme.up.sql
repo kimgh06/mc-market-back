@@ -10,8 +10,9 @@ create table public.users
 
     created_at  timestamp with time zone not null default now(),
     updated_at  timestamp with time zone not null default now()
-);
 
+);
+CREATE TEXT SEARCH CONFIGURATION korean ( COPY = simple );
 create table public.products
 (
     id             bigint primary key,
