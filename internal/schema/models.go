@@ -26,13 +26,13 @@ type Article struct {
 }
 
 type Comment struct {
-	ID        int64          `json:"id"`
-	ArticleID int64          `json:"article_id"`
-	UserID    int64          `json:"user_id"`
-	ReplyTo   sql.NullInt64  `json:"reply_to"`
-	Content   string         `json:"content"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	ID        int64         `json:"id"`
+	ArticleID int64         `json:"article_id"`
+	UserID    int64         `json:"user_id"`
+	ReplyTo   sql.NullInt64 `json:"reply_to"`
+	Content   string        `json:"content"`
+	CreatedAt time.Time     `json:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at"`
 }
 
 type Download struct {
@@ -88,4 +88,12 @@ type User struct {
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	Cash        int32          `json:"cash"`
+}
+
+type Settlement struct {
+	ID      int64   `json:"id"`
+	UserId  int64   `json:"user_id"`
+	Amount  float64 `json:"amount"`
+	Month   string  `json:"month"`
+	Settled bool    `json:"settled"`
 }

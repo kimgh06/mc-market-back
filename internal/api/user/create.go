@@ -75,10 +75,13 @@ func createUser(ctx *gin.Context) {
 		}
 	}
 
-
 	createUserResponse, err := createSurgeUser(a, body.Username, body.Password)
-	if err != nil || createUserResponse.ID == nil || *createUserResponse.ID == "0" {
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON(err.Error()))
+		return
+	}
+	if createUserResponse.ID == nil || *createUserResponse.ID == "0" {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, perrors.FailedAPI.MakeJSON("invalid Surge user response"))
 		return
 	}
 
